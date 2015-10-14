@@ -635,8 +635,6 @@ Wire Wire Line
 Wire Wire Line
 	7250 2200 6950 2200
 Wire Wire Line
-	7250 2300 6950 2300
-Wire Wire Line
 	7500 2100 7800 2100
 Wire Wire Line
 	7500 2200 7800 2200
@@ -648,8 +646,6 @@ Text Label 6950 2100 0    40   ~ 0
 MISO
 Text Label 6950 2200 0    40   ~ 0
 SCK
-Text Label 6950 2300 0    40   ~ 0
-RST
 Text Label -1350 4650 0    40   ~ 0
 VCC
 Text Label 7800 2100 0    40   ~ 0
@@ -893,7 +889,7 @@ Wire Wire Line
 Text Label 2800 6200 0    40   ~ 0
 CC2
 Text Label 8800 1150 0    40   ~ 0
-CC1
+CC2
 Text Label 8800 1300 0    40   ~ 0
 DC2
 Wire Wire Line
@@ -1359,4 +1355,8 @@ Text Label 7050 3700 0    40   ~ 0
 TX3
 Text Label 7050 3800 0    40   ~ 0
 RX3
+Wire Wire Line
+	7250 2300 6950 2300
+Text Label 6950 2300 0    40   ~ 0
+RESET
 $EndSCHEMATC

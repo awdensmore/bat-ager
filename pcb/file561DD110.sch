@@ -434,7 +434,7 @@ Wire Wire Line
 Wire Wire Line
 	4350 2550 4350 2600
 Wire Wire Line
-	4000 1800 4550 1800
+	4000 1800 4650 1800
 Wire Wire Line
 	4350 1800 4350 2150
 Wire Wire Line
@@ -466,7 +466,7 @@ Connection ~ 4500 1800
 Text Label 4500 1600 0    40   ~ 0
 shunt5_high
 Wire Wire Line
-	5050 1800 5350 1800
+	4950 1800 5350 1800
 Wire Wire Line
 	5100 1800 5100 1600
 Wire Wire Line
