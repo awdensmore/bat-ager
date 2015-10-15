@@ -139,7 +139,7 @@ U 1 1 561E6331
 P 7200 5350
 F 0 "C11" H 7225 5450 50  0000 L CNN
 F 1 "150uF" H 7225 5250 50  0000 L CNN
-F 2 "Capacitors_Elko_ThroughHole:Elko_vert_11.5x8mm_RM3.5" H 7238 5200 30  0001 C CNN
+F 2 "Custom Footprints:Elko_vert_11.5x8mm_RM3.5" H 7238 5200 30  0001 C CNN
 F 3 "" H 7200 5350 60  0000 C CNN
 	1    7200 5350
 	1    0    0    -1  
@@ -150,7 +150,7 @@ U 1 1 561E67B1
 P 7850 4800
 F 0 "C12" H 7875 4900 50  0000 L CNN
 F 1 "150uF" H 7875 4700 50  0000 L CNN
-F 2 "Capacitors_Elko_ThroughHole:Elko_vert_11.5x8mm_RM3.5" H 7888 4650 30  0001 C CNN
+F 2 "Custom Footprints:Elko_vert_11.5x8mm_RM3.5" H 7888 4650 30  0001 C CNN
 F 3 "" H 7850 4800 60  0000 C CNN
 	1    7850 4800
 	1    0    0    -1  

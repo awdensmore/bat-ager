@@ -72,7 +72,7 @@ U 1 1 561CF063
 P 5050 4050
 F 0 "R21" V 5130 4050 50  0000 C CNN
 F 1 "R" V 5050 4050 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 4980 4050 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 4980 4050 30  0001 C CNN
 F 3 "" H 5050 4050 30  0000 C CNN
 	1    5050 4050
 	1    0    0    -1  
@@ -83,7 +83,7 @@ U 1 1 561CF06A
 P 5050 3500
 F 0 "R20" V 5130 3500 50  0000 C CNN
 F 1 "R" V 5050 3500 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 4980 3500 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 4980 3500 30  0001 C CNN
 F 3 "" H 5050 3500 30  0000 C CNN
 	1    5050 3500
 	1    0    0    -1  
@@ -308,7 +308,7 @@ U 1 1 561CF0EF
 P 1750 3150
 F 0 "R11" V 1830 3150 50  0000 C CNN
 F 1 "R" V 1750 3150 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 1680 3150 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 1680 3150 30  0001 C CNN
 F 3 "" H 1750 3150 30  0000 C CNN
 	1    1750 3150
 	1    0    0    -1  
@@ -319,7 +319,7 @@ U 1 1 561CF0F6
 P 1350 3400
 F 0 "R7" V 1430 3400 50  0000 C CNN
 F 1 "R" V 1350 3400 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 1280 3400 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 1280 3400 30  0001 C CNN
 F 3 "" H 1350 3400 30  0000 C CNN
 	1    1350 3400
 	0    1    1    0   
@@ -341,7 +341,7 @@ U 1 1 561CF103
 P 1550 3550
 F 0 "R8" V 1630 3550 50  0000 C CNN
 F 1 "R" V 1550 3550 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 1480 3550 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 1480 3550 30  0001 C CNN
 F 3 "" H 1550 3550 30  0000 C CNN
 	1    1550 3550
 	0    1    1    0   
@@ -352,7 +352,7 @@ U 1 1 561CF10A
 P 2950 3150
 F 0 "R14" V 3030 3150 50  0000 C CNN
 F 1 "R" V 2950 3150 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 2880 3150 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 2880 3150 30  0001 C CNN
 F 3 "" H 2950 3150 30  0000 C CNN
 	1    2950 3150
 	1    0    0    -1  
@@ -365,7 +365,7 @@ U 1 1 561CF113
 P 1600 4100
 F 0 "R9" V 1680 4100 50  0000 C CNN
 F 1 "R" V 1600 4100 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 1530 4100 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 1530 4100 30  0001 C CNN
 F 3 "" H 1600 4100 30  0000 C CNN
 	1    1600 4100
 	1    0    0    -1  
@@ -376,7 +376,7 @@ U 1 1 561CF11A
 P 1600 4600
 F 0 "R10" V 1680 4600 50  0000 C CNN
 F 1 "R" V 1600 4600 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 1530 4600 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 1530 4600 30  0001 C CNN
 F 3 "" H 1600 4600 30  0000 C CNN
 	1    1600 4600
 	1    0    0    -1  
@@ -645,7 +645,7 @@ U 1 1 561D0DD5
 P 10300 4050
 F 0 "R36" V 10380 4050 50  0000 C CNN
 F 1 "R" V 10300 4050 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 10230 4050 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 10230 4050 30  0001 C CNN
 F 3 "" H 10300 4050 30  0000 C CNN
 	1    10300 4050
 	1    0    0    -1  
@@ -656,7 +656,7 @@ U 1 1 561D0DDB
 P 10300 3500
 F 0 "R35" V 10380 3500 50  0000 C CNN
 F 1 "R" V 10300 3500 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 10230 3500 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 10230 3500 30  0001 C CNN
 F 3 "" H 10300 3500 30  0000 C CNN
 	1    10300 3500
 	1    0    0    -1  
@@ -876,7 +876,7 @@ U 1 1 561D0E53
 P 7000 3150
 F 0 "R26" V 7080 3150 50  0000 C CNN
 F 1 "R" V 7000 3150 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 6930 3150 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 6930 3150 30  0001 C CNN
 F 3 "" H 7000 3150 30  0000 C CNN
 	1    7000 3150
 	1    0    0    -1  
@@ -887,7 +887,7 @@ U 1 1 561D0E59
 P 6600 3400
 F 0 "R22" V 6680 3400 50  0000 C CNN
 F 1 "R" V 6600 3400 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 6530 3400 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 6530 3400 30  0001 C CNN
 F 3 "" H 6600 3400 30  0000 C CNN
 	1    6600 3400
 	0    1    1    0   
@@ -909,7 +909,7 @@ U 1 1 561D0E65
 P 6800 3550
 F 0 "R23" V 6880 3550 50  0000 C CNN
 F 1 "R" V 6800 3550 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 6730 3550 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 6730 3550 30  0001 C CNN
 F 3 "" H 6800 3550 30  0000 C CNN
 	1    6800 3550
 	0    1    1    0   
@@ -920,7 +920,7 @@ U 1 1 561D0E6B
 P 8200 3150
 F 0 "R29" V 8280 3150 50  0000 C CNN
 F 1 "R" V 8200 3150 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 8130 3150 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 8130 3150 30  0001 C CNN
 F 3 "" H 8200 3150 30  0000 C CNN
 	1    8200 3150
 	1    0    0    -1  
@@ -933,7 +933,7 @@ U 1 1 561D0E72
 P 6850 4100
 F 0 "R24" V 6930 4100 50  0000 C CNN
 F 1 "R" V 6850 4100 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 6780 4100 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 6780 4100 30  0001 C CNN
 F 3 "" H 6850 4100 30  0000 C CNN
 	1    6850 4100
 	1    0    0    -1  
@@ -944,7 +944,7 @@ U 1 1 561D0E78
 P 6850 4600
 F 0 "R25" V 6930 4600 50  0000 C CNN
 F 1 "R" V 6850 4600 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 6780 4600 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 6780 4600 30  0001 C CNN
 F 3 "" H 6850 4600 30  0000 C CNN
 	1    6850 4600
 	1    0    0    -1  
