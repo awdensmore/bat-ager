@@ -72,7 +72,7 @@ U 1 1 561DD717
 P 5150 4050
 F 0 "R81" V 5230 4050 50  0000 C CNN
 F 1 "R" V 5150 4050 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 5080 4050 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 5080 4050 30  0001 C CNN
 F 3 "" H 5150 4050 30  0000 C CNN
 	1    5150 4050
 	1    0    0    -1  
@@ -83,7 +83,7 @@ U 1 1 561DD71E
 P 5150 3500
 F 0 "R80" V 5230 3500 50  0000 C CNN
 F 1 "R" V 5150 3500 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 5080 3500 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 5080 3500 30  0001 C CNN
 F 3 "" H 5150 3500 30  0000 C CNN
 	1    5150 3500
 	1    0    0    -1  
@@ -304,7 +304,7 @@ U 1 1 561DD7A3
 P 1800 3150
 F 0 "R71" V 1880 3150 50  0000 C CNN
 F 1 "R" V 1800 3150 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 1730 3150 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 1730 3150 30  0001 C CNN
 F 3 "" H 1800 3150 30  0000 C CNN
 	1    1800 3150
 	1    0    0    -1  
@@ -315,7 +315,7 @@ U 1 1 561DD7AA
 P 1400 3400
 F 0 "R67" V 1480 3400 50  0000 C CNN
 F 1 "R" V 1400 3400 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 1330 3400 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 1330 3400 30  0001 C CNN
 F 3 "" H 1400 3400 30  0000 C CNN
 	1    1400 3400
 	0    1    1    0   
@@ -337,7 +337,7 @@ U 1 1 561DD7B7
 P 1600 3550
 F 0 "R68" V 1680 3550 50  0000 C CNN
 F 1 "R" V 1600 3550 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 1530 3550 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 1530 3550 30  0001 C CNN
 F 3 "" H 1600 3550 30  0000 C CNN
 	1    1600 3550
 	0    1    1    0   
@@ -348,7 +348,7 @@ U 1 1 561DD7BE
 P 3000 3150
 F 0 "R74" V 3080 3150 50  0000 C CNN
 F 1 "R" V 3000 3150 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 2930 3150 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 2930 3150 30  0001 C CNN
 F 3 "" H 3000 3150 30  0000 C CNN
 	1    3000 3150
 	1    0    0    -1  
@@ -363,7 +363,7 @@ U 1 1 561DD7C7
 P 1650 4100
 F 0 "R69" V 1730 4100 50  0000 C CNN
 F 1 "R" V 1650 4100 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 1580 4100 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 1580 4100 30  0001 C CNN
 F 3 "" H 1650 4100 30  0000 C CNN
 	1    1650 4100
 	1    0    0    -1  
@@ -374,7 +374,7 @@ U 1 1 561DD7CE
 P 1650 4600
 F 0 "R70" V 1730 4600 50  0000 C CNN
 F 1 "R" V 1650 4600 50  0000 C CNN
-F 2 "Resistors_ThroughHole:Resistor_Horizontal_RM10mm" V 1580 4600 30  0001 C CNN
+F 2 "Custom Footprints:Resistor_Horizontal_RM10mm" V 1580 4600 30  0001 C CNN
 F 3 "" H 1650 4600 30  0000 C CNN
 	1    1650 4600
 	1    0    0    -1  
@@ -434,7 +434,7 @@ Wire Wire Line
 Wire Wire Line
 	4350 2550 4350 2600
 Wire Wire Line
-	4000 1800 4550 1800
+	4000 1800 4650 1800
 Wire Wire Line
 	4350 1800 4350 2150
 Wire Wire Line
@@ -466,7 +466,7 @@ Connection ~ 4500 1800
 Text Label 4500 1600 0    40   ~ 0
 shunt5_high
 Wire Wire Line
-	5050 1800 5350 1800
+	4950 1800 5350 1800
 Wire Wire Line
 	5100 1800 5100 1600
 Wire Wire Line
@@ -718,4 +718,64 @@ Text Label 5300 3100 2    40   ~ 0
 bat5+
 Text Label 2700 5750 0    80   ~ 0
 bat5+
+$Comp
+L CONN_01X02 P16
+U 1 1 561F6C0F
+P 9350 2950
+F 0 "P16" H 9350 3100 50  0000 C CNN
+F 1 "FAN" V 9450 2950 50  0000 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x02" H 9350 2950 60  0001 C CNN
+F 3 "" H 9350 2950 60  0000 C CNN
+	1    9350 2950
+	1    0    0    -1  
+$EndComp
+$Comp
+L Q_NMOS_GDS Q22
+U 1 1 561F6CDD
+P 8850 3300
+F 0 "Q22" H 9150 3350 50  0000 R CNN
+F 1 "CSD18536KCS" H 9500 3250 50  0000 R CNN
+F 2 "Power_Integrations:TO-220" H 9050 3400 29  0001 C CNN
+F 3 "" H 8850 3300 60  0000 C CNN
+	1    8850 3300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9150 3000 8950 3000
+Wire Wire Line
+	8950 3000 8950 3100
+$Comp
+L GND #PWR0104
+U 1 1 561F6DC6
+P 8950 3600
+F 0 "#PWR0104" H 8950 3350 50  0001 C CNN
+F 1 "GND" H 8950 3450 50  0000 C CNN
+F 2 "" H 8950 3600 60  0000 C CNN
+F 3 "" H 8950 3600 60  0000 C CNN
+	1    8950 3600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8950 3500 8950 3600
+$Comp
+L R R82
+U 1 1 561F6E96
+P 8400 3300
+F 0 "R82" V 8480 3300 50  0000 C CNN
+F 1 "220" V 8400 3300 50  0000 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 8330 3300 30  0001 C CNN
+F 3 "" H 8400 3300 30  0000 C CNN
+	1    8400 3300
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	8650 3300 8550 3300
+Wire Wire Line
+	8250 3300 7950 3300
+Wire Wire Line
+	9150 2900 8800 2900
+Text Label 8800 2900 0    40   ~ 0
++15V
+Text HLabel 7950 3300 0    40   Input ~ 0
+fan_ctrl
 $EndSCHEMATC
