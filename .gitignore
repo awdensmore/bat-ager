@@ -1,4 +1,5 @@
+*.bck
 *.bak
 *.xml
 *.kicad_pcb-bak
-/plot/*
+plot/
