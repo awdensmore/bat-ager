@@ -1,7 +1,7 @@
 (export (version D)
   (design
     (source /Users/adensmore/Dropbox/School/Hardware/bat-ager/pcb/BatAger.sch)
-    (date "Tuesday, October 20, 2015 'PMt' 04:15:27 PM")
+    (date "Tuesday, October 20, 2015 'PMt' 04:36:37 PM")
     (tool "Eeschema (2015-08-28 BZR 6132)-product")
     (sheet (number 1) (name /) (tstamps /)
       (title_block
@@ -790,7 +790,7 @@
       (tstamp 561D84AB))
     (comp (ref R62)
       (value 200)
-      (footprint Resistors_SMD:R_0805_HandSoldering)
+      (footprint "Custom Footprints:Resistor_Horizontal_RM10mm")
       (libsource (lib BatAger-cache) (part R-RESCUE-BatAger))
       (sheetpath (names /Sheet561D4A90/) (tstamps /561D4A91/))
       (tstamp 561D84B1))
@@ -886,7 +886,7 @@
       (tstamp 56266703))
     (comp (ref C26)
       (value 0.1uF)
-      (footprint Capacitors_SMD:C_0805_HandSoldering)
+      (footprint Capacitors_ThroughHole:C_Disc_D3_P2.5)
       (libsource (lib device) (part C_Small))
       (sheetpath (names /Sheet561D4A90/) (tstamps /561D4A91/))
       (tstamp 56266C9B))
