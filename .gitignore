@@ -1,4 +1,5 @@
 *.bck
+*.dcm
 *.bak
 *.xml
 *.kicad_pcb-bak
