@@ -4,3 +4,5 @@
 *.xml
 *.kicad_pcb-bak
 plot/
+code/stm32/Debug
+code/stm32/Release

@@ -91,15 +91,16 @@ int main(void)
   MX_TIM3_Init();
 
   /* USER CODE BEGIN 2 */
+  /*
   uint32_t dc_ampl = 800;
   uint8_t sine_ampl = 50; // expressed as % [0 - 100]
   pwm_sine_Start(htim1, TIM_CHANNEL_1, dc_ampl, sine_ampl);
-  //HAL_Delay(100);
   pwm_sine_Start(htim1, TIM_CHANNEL_2, dc_ampl, sine_ampl);
-  //HAL_Delay(10);
   pwm_sine_Start(htim3, TIM_CHANNEL_1, dc_ampl, sine_ampl);
-  //HAL_Delay(10);
-  //pwm_sine_Start(htim3, TIM_CHANNEL_2, dc_ampl, sine_ampl);
+  */
+  uint32_t dc = 1180;
+  HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_1, &dc, (uint16_t)1);
+
 
   /* USER CODE END 2 */
 

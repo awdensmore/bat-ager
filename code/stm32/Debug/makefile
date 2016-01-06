@@ -48,38 +48,38 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 SECONDARY_FLASH += \
-pwm_dmaTM1.bin \
+bat_ager.bin \
 
 SECONDARY_SIZE += \
-pwm_dmaTM1.siz \
+bat_ager.siz \
 
 
 # All Target
-all: pwm_dmaTM1.elf secondary-outputs
+all: bat_ager.elf secondary-outputs
 
 # Tool invocations
-pwm_dmaTM1.elf: $(OBJS) $(USER_OBJS)
+bat_ager.elf: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross ARM C++ Linker'
-	arm-none-eabi-g++ -mcpu=cortex-m0 -mthumb -O0 -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -ffreestanding -fno-move-loop-invariants -Wall -Wextra  -g3 -T mem.ld -T libs.ld -T sections.ld -nostartfiles -Xlinker --gc-sections -L"../ldscripts" -Wl,-Map,"pwm_dmaTM1.map" --specs=nano.specs -o "pwm_dmaTM1.elf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-g++ -mcpu=cortex-m0 -mthumb -Og -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -ffreestanding -fno-move-loop-invariants -Wall -Wextra  -g3 -T mem.ld -T libs.ld -T sections.ld -nostartfiles -Xlinker --gc-sections -L"../ldscripts" -Wl,-Map,"bat_ager.map" --specs=nano.specs -o "bat_ager.elf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
-pwm_dmaTM1.bin: pwm_dmaTM1.elf
+bat_ager.bin: bat_ager.elf
 	@echo 'Invoking: Cross ARM GNU Create Flash Image'
-	arm-none-eabi-objcopy binary "pwm_dmaTM1.elf"  "pwm_dmaTM1.bin"
+	arm-none-eabi-objcopy -O binary "bat_ager.elf"  "bat_ager.bin"
 	@echo 'Finished building: $@'
 	@echo ' '
 
-pwm_dmaTM1.siz: pwm_dmaTM1.elf
+bat_ager.siz: bat_ager.elf
 	@echo 'Invoking: Cross ARM GNU Print Size'
-	arm-none-eabi-size --format=berkeley "pwm_dmaTM1.elf"
+	arm-none-eabi-size --format=berkeley "bat_ager.elf"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(SECONDARY_SIZE)$(C++_DEPS)$(OBJS)$(C_DEPS)$(ASM_DEPS)$(CC_DEPS)$(SECONDARY_FLASH)$(CPP_DEPS)$(CXX_DEPS)$(C_UPPER_DEPS)$(S_UPPER_DEPS) pwm_dmaTM1.elf
+	-$(RM) $(SECONDARY_SIZE)$(C++_DEPS)$(OBJS)$(C_DEPS)$(ASM_DEPS)$(CC_DEPS)$(SECONDARY_FLASH)$(CPP_DEPS)$(CXX_DEPS)$(C_UPPER_DEPS)$(S_UPPER_DEPS) bat_ager.elf
 	-@echo ' '
 
 secondary-outputs: $(SECONDARY_FLASH) $(SECONDARY_SIZE)
