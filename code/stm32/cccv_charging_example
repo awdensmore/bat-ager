@@ -1,0 +1,139 @@
+
+
+#define chg_pin    5
+#define i_pin      A4
+#define v_pin      A5
+#define dchg_pin   3 
+#define IMODE      0 // CC charging mode
+#define VMODE      1 // CV charging mode
+#define ENDCHG     2 // End charging mode
+#define DCHG       3 // discharge mode
+#define LVDC       4 // Low-voltage disconnect mode
+#define ERR        4
+#define VSTPT      696 // Rtop = 47k, Rbot = 12k, 14V
+#define ISTPT      100 // 1.4A (ie 0.2C for 7.5Ah bat)
+#define IEND       45  // 0.075A (ie 0.01C for 7.5Ah bat)
+#define VEND       532 // 10.5V
+
+word v = 0;
+word i = 0;
+volatile byte chg = 0;
+volatile short j = 0;
+byte bat_mode = IMODE;
+unsigned long now = 0;
+unsigned long time = 0;
+unsigned long timer = 2000;
+
+void setup() {
+ Serial.begin(115200);
+ 
+ pinMode(chg_pin, OUTPUT);
+ digitalWrite(chg_pin, LOW);
+ pinMode(dchg_pin, OUTPUT);
+ digitalWrite(dchg_pin, HIGH);
+ pinMode(v_pin, INPUT);
+ pinMode(i_pin, INPUT);
+
+ analogWrite(chg_pin,0);
+
+}
+
+word adc_read(byte adc_pin) {
+  byte reads = 100;
+  long val = 0;
+  word adc_now = 0;
+  word ret_val = 0;
+  
+  for(byte i=0;i<reads;i++) {
+    adc_now = analogRead(adc_pin);
+    val = val + long(adc_now);
+  }
+  
+  ret_val = val / long(reads);
+  return word(ret_val);
+}
+
+void pi_ctrl(byte adc_pin, short stpt) {
+  short i = 0;
+  short p = 0;
+  short diff = 0;
+
+  diff = short(adc_read(adc_pin)) - stpt;
+  if(abs(diff)>ERR) {
+    p = diff / 100;
+    i = -(diff/abs(diff))*j / 10;
+    chg = max(0,min(p+i+chg,255));
+    analogWrite(chg_pin,chg);
+    diff = short(adc_read(adc_pin)) - stpt;
+    j++;
+    //Serial.println(chg);
+  }
+  else {
+    j = 0;
+  }
+  /*
+  Serial.print(", diff: ");
+  Serial.print(diff);
+  Serial.print(", adc: ");
+  Serial.println(adc_read(adc_pin));
+  */
+}
+
+byte charge(word vp, word ip) {
+  byte mode;
+  short vdiff = 0; // diff b/w adc val and stpt
+  short idiff = 0; // diff b/w adc val and stpt
+  
+  // Determine charging mode
+  if (vp >= VSTPT && ip <= IEND) {
+    mode = ENDCHG;
+    analogWrite(chg_pin,0);
+  }
+  else if (vp >= VSTPT){
+    mode = VMODE;
+    pi_ctrl(v_pin, VSTPT);
+  }
+  else {
+    mode = IMODE;
+    pi_ctrl(i_pin, ISTPT);
+  }
+  return mode;
+} 
+
+byte discharge(word vbat) {
+  byte mode;
+  
+  if(vbat<=VEND) {
+    digitalWrite(dchg_pin,HIGH); // fet is off when trans pin is high
+    mode = LVDC;
+  }
+  else {
+    digitalWrite(dchg_pin,LOW);
+    mode = DCHG;
+  }
+  return mode;
+}
+
+void db_print(byte md, word v, word i) {
+  Serial.print("Mode: ");
+  Serial.print(md);
+  Serial.print(", Voltage: ");
+  Serial.print(v);
+  Serial.print(", Current: ");
+  Serial.println(i);
+}
+
+void loop() {
+  v = adc_read(v_pin);
+  i = adc_read(i_pin);
+  
+  bat_mode = discharge(v);
+
+  now = millis() - time;
+  if (now>timer){
+    db_print(bat_mode, v, i);
+    time = millis();
+  }
+  
+}
+  
