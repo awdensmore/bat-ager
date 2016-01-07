@@ -38,6 +38,8 @@
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
+HAL_StatusTypeDef hstat;
+
 ADC_HandleTypeDef hadc;
 
 TIM_HandleTypeDef htim1;
@@ -105,6 +107,12 @@ int main(void)
   MX_USART2_UART_Init();
 
   /* USER CODE BEGIN 2 */
+  uint32_t adc_result;
+  hstat = HAL_ADC_Start(&hadc);
+  hstat = HAL_ADC_PollForConversion(&hadc, 50);
+  adc_result = HAL_ADC_GetValue(&hadc);
+  hstat = HAL_ADC_Stop(&hadc);
+
 
   /* USER CODE END 2 */
 
@@ -172,6 +180,7 @@ void MX_ADC_Init(void)
   hadc.Init.LowPowerAutoPowerOff = DISABLE;
   hadc.Init.ContinuousConvMode = DISABLE;
   hadc.Init.DiscontinuousConvMode = DISABLE;
+  hadc.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc.Init.DMAContinuousRequests = DISABLE;
   hadc.Init.Overrun = OVR_DATA_PRESERVED;
