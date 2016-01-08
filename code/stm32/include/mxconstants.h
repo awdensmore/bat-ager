@@ -56,6 +56,8 @@
 #define USART_RX_GPIO_Port GPIOA
 #define LD2_Pin GPIO_PIN_5
 #define LD2_GPIO_Port GPIOA
+#define ADC_2v_Pin GPIO_PIN_3
+#define ADC_2v_GPIO_Port GPIOC
 #define ADC_2i_Pin GPIO_PIN_6
 #define ADC_2i_GPIO_Port GPIOA
 #define ADC_3v_Pin GPIO_PIN_7

@@ -39,7 +39,6 @@
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
-ADC_HandleTypeDef hadc;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
@@ -108,28 +107,18 @@ int main(void)
   HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(GPIOC, dchg_ctrl_1_Pin, GPIO_PIN_RESET);
 
+  /* ADC Test */
   uint32_t adc_result = 0;
-  //uint8_t flag = 0;
-  //uint8_t rank = 0;
 
-  //ADC_ChannelConfTypeDef sConfig;
-  //sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
-  //sConfig.Channel = ADC_CHANNEL_6;
-  //HAL_ADC_ConfigChannel(&hadc, &sConfig);
+  adc_result = adc_read(ADC_CHANNEL_0);
+  adc_result = adc_read(ADC_CHANNEL_1);
+  adc_result = adc_read(ADC_CHANNEL_6);
 
-  hstat = HAL_ADCEx_Calibration_Start(&hadc);
-  HAL_Delay(10);
-  adc_result = adc_read(hadc, ADC_CHANNEL_0);
-  adc_result = adc_read(hadc, ADC_CHANNEL_1);
-  adc_result = adc_read(hadc, ADC_CHANNEL_6);
-  /*
-  hstat = HAL_ADC_Start(&hadc);
-  hstat = HAL_ADC_PollForConversion(&hadc, 100);
-  flag = __HAL_ADC_GET_FLAG(&hadc, ADC_FLAG_EOS);
-  adc_result[0] = HAL_ADC_GetValue(&hadc);
-  flag = __HAL_ADC_GET_FLAG(&hadc, ADC_FLAG_EOS);
-  hstat = HAL_ADC_Stop(&hadc);
-*/
+  /* PWM Test */
+  //HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  pwm_Start(htim1, TIM_CHANNEL_1, 25);
+  //pwm_sine_Start(htim1, TIM_CHANNEL_1, 800, 100);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -200,45 +189,8 @@ void MX_ADC_Init(void)
   hadc.Init.SamplingTimeCommon = ADC_SAMPLETIME_13CYCLES_5;
   HAL_ADC_Init(&hadc);
 
-    /**Configure for the selected ADC regular channel to be converted. 
-    */
-  //sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
-  /*for(uint8_t i=0; i<sizeof(ADC_CHANNELS); i++)
-  {
-	  sConfig.Channel = ADC_CHANNELS[i];
-	  HAL_ADC_ConfigChannel(&hadc, &sConfig);
-  }*/
-  /*
-  sConfig.Channel = ADC_CHANNEL_0;
-  HAL_ADC_ConfigChannel(&hadc, &sConfig);
-  sConfig.Channel = ADC_CHANNEL_1;
-  HAL_ADC_ConfigChannel(&hadc, &sConfig);
-  sConfig.Rank = ADC_RANK_NONE;
-  sConfig.Channel = ADC_CHANNEL_2;
-  HAL_ADC_ConfigChannel(&hadc, &sConfig);
-  sConfig.Channel = ADC_CHANNEL_3;
-  HAL_ADC_ConfigChannel(&hadc, &sConfig);
-  sConfig.Channel = ADC_CHANNEL_4;
-  HAL_ADC_ConfigChannel(&hadc, &sConfig);
-  sConfig.Channel = ADC_CHANNEL_5;
-  HAL_ADC_ConfigChannel(&hadc, &sConfig);
-  sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
-  sConfig.Channel = ADC_CHANNEL_6;
-  HAL_ADC_ConfigChannel(&hadc, &sConfig);
-  sConfig.Channel = ADC_CHANNEL_7;
-  HAL_ADC_ConfigChannel(&hadc, &sConfig);
-  sConfig.Channel = ADC_CHANNEL_8;
-  HAL_ADC_ConfigChannel(&hadc, &sConfig);
-  sConfig.Channel = ADC_CHANNEL_9;
-  HAL_ADC_ConfigChannel(&hadc, &sConfig);
-  sConfig.Channel = ADC_CHANNEL_10;
-  HAL_ADC_ConfigChannel(&hadc, &sConfig);
-  sConfig.Channel = ADC_CHANNEL_11;
-  HAL_ADC_ConfigChannel(&hadc, &sConfig);
-  sConfig.Channel = ADC_CHANNEL_12;
-  HAL_ADC_ConfigChannel(&hadc, &sConfig);
-  sConfig.Channel = ADC_CHANNEL_13;
-  HAL_ADC_ConfigChannel(&hadc, &sConfig);*/
+  hstat = HAL_ADCEx_Calibration_Start(&hadc);
+  HAL_Delay(10);
 }
 
 /* TIM1 init function */
@@ -252,7 +204,7 @@ void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 0;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 0;
+  htim1.Init.Period = TIM_PERIOD;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   HAL_TIM_PWM_Init(&htim1);
@@ -271,7 +223,7 @@ void MX_TIM1_Init(void)
   HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig);
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
+  sConfigOC.Pulse = 800;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;

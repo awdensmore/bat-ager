@@ -90,7 +90,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     PB0     ------> ADC_IN8
     PB1     ------> ADC_IN9 
     */
-    GPIO_InitStruct.Pin = ADC_4i_Pin|ADC_5v_Pin|ADC_5i_Pin|GPIO_PIN_3;
+    GPIO_InitStruct.Pin = ADC_4i_Pin|ADC_5v_Pin|ADC_5i_Pin|ADC_2v_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
@@ -181,7 +181,7 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
     hdma_tim1_ch1.Init.MemInc = DMA_MINC_ENABLE;
     hdma_tim1_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
     hdma_tim1_ch1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-    hdma_tim1_ch1.Init.Mode = DMA_NORMAL;
+    hdma_tim1_ch1.Init.Mode = DMA_CIRCULAR;
     hdma_tim1_ch1.Init.Priority = DMA_PRIORITY_LOW;
     HAL_DMA_Init(&hdma_tim1_ch1);
 
