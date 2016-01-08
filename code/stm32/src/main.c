@@ -54,7 +54,6 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-HAL_StatusTypeDef hstat;
 
 /* USER CODE END PV */
 
@@ -109,24 +108,28 @@ int main(void)
   HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(GPIOC, dchg_ctrl_1_Pin, GPIO_PIN_RESET);
 
-  uint32_t adc_result[10] = {0};
-  uint8_t flag = 0;
-  uint8_t rank = 0;
+  uint32_t adc_result = 0;
+  //uint8_t flag = 0;
+  //uint8_t rank = 0;
 
-  ADC_ChannelConfTypeDef sConfig;
-  sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
-  sConfig.Channel = ADC_CHANNEL_6;
-  HAL_ADC_ConfigChannel(&hadc, &sConfig);
+  //ADC_ChannelConfTypeDef sConfig;
+  //sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
+  //sConfig.Channel = ADC_CHANNEL_6;
+  //HAL_ADC_ConfigChannel(&hadc, &sConfig);
 
   hstat = HAL_ADCEx_Calibration_Start(&hadc);
   HAL_Delay(10);
+  adc_result = adc_read(hadc, ADC_CHANNEL_0);
+  adc_result = adc_read(hadc, ADC_CHANNEL_1);
+  adc_result = adc_read(hadc, ADC_CHANNEL_6);
+  /*
   hstat = HAL_ADC_Start(&hadc);
   hstat = HAL_ADC_PollForConversion(&hadc, 100);
   flag = __HAL_ADC_GET_FLAG(&hadc, ADC_FLAG_EOS);
   adc_result[0] = HAL_ADC_GetValue(&hadc);
   flag = __HAL_ADC_GET_FLAG(&hadc, ADC_FLAG_EOS);
   hstat = HAL_ADC_Stop(&hadc);
-
+*/
   /* USER CODE END 2 */
 
   /* Infinite loop */

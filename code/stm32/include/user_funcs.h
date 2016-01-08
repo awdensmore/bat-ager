@@ -1,6 +1,7 @@
 #include "stm32f0xx_hal.h"
 
 /* Typedefs */
+HAL_StatusTypeDef hstat;
 /*
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
@@ -23,8 +24,6 @@ DMA_HandleTypeDef hdma_tim3_ch1_trig;
 /* Sine wave of amplitude = 1000
  * Resolution of 30 for 30kHz switching speed */
 #define SINE_RESOLUTION 30
-//static const uint32_t ADC_CHANNELS[10] = {ADC_CHANNEL_0, ADC_CHANNEL_1, ADC_CHANNEL_6, ADC_CHANNEL_7, ADC_CHANNEL_8, \
-		 	 	 	 	 	 	 	 	  ADC_CHANNEL_9, ADC_CHANNEL_10, ADC_CHANNEL_11, ADC_CHANNEL_12, ADC_CHANNEL_13};
 
 static const int16_t i16_sine_lookup[SINE_RESOLUTION] =
 {
@@ -32,3 +31,4 @@ static const int16_t i16_sine_lookup[SINE_RESOLUTION] =
   0, -104, -204, -294, -372, -434, -476, -798, -798, -476, -434, -372, -294, -204, -104};
 
 void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_dc_duty_cycle, uint8_t u8_ampl);
+uint32_t adc_read(ADC_HandleTypeDef hadc, uint32_t u32_adc_chan);

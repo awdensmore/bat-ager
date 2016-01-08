@@ -19,4 +19,22 @@ void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_
 
 }
 
-//void adc_read
+uint32_t adc_read(ADC_HandleTypeDef hadc, uint32_t u32_adc_chan)
+{
+	ADC_ChannelConfTypeDef sConfig;
+	uint32_t u32_adc_result = 0;
+
+	sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
+	sConfig.Channel = u32_adc_chan;
+	hstat = HAL_ADC_ConfigChannel(&hadc, &sConfig);
+
+	hstat = HAL_ADC_Start(&hadc);
+	hstat = HAL_ADC_PollForConversion(&hadc, 100);
+	u32_adc_result = HAL_ADC_GetValue(&hadc);
+	hstat = HAL_ADC_Stop(&hadc);
+
+	sConfig.Rank = ADC_RANK_NONE;
+	hstat = HAL_ADC_ConfigChannel(&hadc, &sConfig);
+
+	return u32_adc_result;
+}
