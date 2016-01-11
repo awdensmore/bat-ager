@@ -104,29 +104,28 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   /* Turn off Battery charging and discharging pins */
+  pwm_Start(htim3, TIM_CHANNEL_3, 0);
   HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(GPIOC, dchg_ctrl_1_Pin, GPIO_PIN_RESET);
 
   /* ADC Test */
-  uint32_t adc_result = 0;
 
-  adc_result = adc_read(ADC_CHANNEL_0);
-  adc_result = adc_read(ADC_CHANNEL_1);
-  adc_result = adc_read(ADC_CHANNEL_6);
+  //adc_result = adc_read(ADC_CHANNEL_0);
+  //adc_result = adc_read(ADC_CHANNEL_1);
+  //adc_result = adc_read(ADC_CHANNEL_6);
 
   /* PWM Test */
-  //HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-  pwm_Start(htim1, TIM_CHANNEL_1, 25);
   //pwm_sine_Start(htim1, TIM_CHANNEL_1, 800, 100);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
 
+  pi_j = 0;
+  pi_pwm_val = 0;
+
   while (1)
   {
-	  //HAL_GPIO_TogglePin(GPIOC, chg_onoff_1_Pin);
-	  //HAL_Delay(1000);
+	  pi_ctrl(510, ADC_CHANNEL_1, htim3, TIM_CHANNEL_3);
   }
 
 
@@ -249,7 +248,7 @@ void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 0;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 0;
+  htim3.Init.Period = TIM_PERIOD;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   HAL_TIM_PWM_Init(&htim3);
 
@@ -258,7 +257,7 @@ void MX_TIM3_Init(void)
   HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig);
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
+  sConfigOC.Pulse = 800;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1);
