@@ -103,29 +103,35 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
-  /* Turn off Battery charging and discharging pins */
-  pwm_Start(htim3, TIM_CHANNEL_3, 0);
-  HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_RESET);
+  /* Initialize pins to 0 */
+  pwm_Start(htim1, TIM_CHANNEL_2, 1600); // PWM control
+  pwm_Start(htim3, TIM_CHANNEL_3, 0); // Discharge control
+  HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_RESET); // Charging on/off
 
   /* ADC Test */
-
   //adc_result = adc_read(ADC_CHANNEL_0);
   //adc_result = adc_read(ADC_CHANNEL_1);
   //adc_result = adc_read(ADC_CHANNEL_6);
 
   /* PWM Test */
-  //pwm_sine_Start(htim1, TIM_CHANNEL_1, 800, 100);
+  uint32_t dc_pwm = 900;
+  uint32_t sine = 80;
+  pwm_sine_Start(htim1, TIM_CHANNEL_2, dc_pwm, sine);
+  //pwm_Start(htim1, TIM_CHANNEL_2, 900);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
 
   pi_j = 0;
-  pi_pwm_val = 0;
+  int32_t pi_pwm_val = 0;
+  uint32_t adc = 0;
 
   while (1)
   {
-	  pi_ctrl(510, ADC_CHANNEL_1, htim3, TIM_CHANNEL_3);
+	  //adc = test(ADC_CHANNEL_1);
+	  pi_pwm_val = pi_ctrl(100, pi_pwm_val, ADC_CHANNEL_1);
+	  pwm_Start(htim3, TIM_CHANNEL_3, (uint32_t)pi_pwm_val);
   }
 
 
@@ -185,7 +191,7 @@ void MX_ADC_Init(void)
   hadc.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc.Init.DMAContinuousRequests = DISABLE;
   hadc.Init.Overrun = OVR_DATA_PRESERVED;
-  hadc.Init.SamplingTimeCommon = ADC_SAMPLETIME_13CYCLES_5;
+  hadc.Init.SamplingTimeCommon = ADC_SAMPLETIME_239CYCLES_5;
   HAL_ADC_Init(&hadc);
 
   hstat = HAL_ADCEx_Calibration_Start(&hadc);

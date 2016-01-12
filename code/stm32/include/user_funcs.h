@@ -49,10 +49,10 @@ DMA_HandleTypeDef hdma_tim3_ch1_trig;
 
 /* Global variables */
 volatile int32_t pi_j; // integral timer value for PI control loop
-volatile int32_t pi_pwm_val;
+//volatile int32_t pi_pwm_val; // PWM setpoint for PI control loop
 
 /* Constants */
-static const uint32_t TIM_PERIOD = 1000;
+static const uint32_t TIM_PERIOD = 1600;
 
 /* Macros */
 #define max(a,b) \
@@ -77,4 +77,5 @@ static const int16_t i16_sine_lookup[SINE_RESOLUTION] =
 void pwm_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_cycle);
 void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_dc_duty_cycle, uint8_t u8_ampl);
 uint32_t adc_read(uint32_t u32_adc_chan);
-void pi_ctrl(uint32_t u32_stpt, uint32_t u32_adc_chan, TIM_HandleTypeDef htimx, uint32_t u32_tim_chan);
+int32_t pi_ctrl(uint32_t u32_stpt, int32_t pi_pwm_val, uint32_t u32_adc_chan);
+

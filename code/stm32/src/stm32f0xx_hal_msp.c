@@ -182,7 +182,7 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
     hdma_tim1_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
     hdma_tim1_ch1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     hdma_tim1_ch1.Init.Mode = DMA_CIRCULAR;
-    hdma_tim1_ch1.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_tim1_ch1.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     HAL_DMA_Init(&hdma_tim1_ch1);
 
     __HAL_LINKDMA(htim_pwm,hdma[TIM_DMA_ID_CC1],hdma_tim1_ch1);
@@ -194,7 +194,7 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
     hdma_tim1_ch2.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
     hdma_tim1_ch2.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     hdma_tim1_ch2.Init.Mode = DMA_CIRCULAR;
-    hdma_tim1_ch2.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_tim1_ch2.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     HAL_DMA_Init(&hdma_tim1_ch2);
 
     __HAL_LINKDMA(htim_pwm,hdma[TIM_DMA_ID_CC2],hdma_tim1_ch2);
@@ -206,7 +206,7 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
     hdma_tim1_ch3_up.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
     hdma_tim1_ch3_up.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     hdma_tim1_ch3_up.Init.Mode = DMA_CIRCULAR;
-    hdma_tim1_ch3_up.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_tim1_ch3_up.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     HAL_DMA_Init(&hdma_tim1_ch3_up);
 
     /* Several peripheral DMA handle pointers point to the same DMA handle.
@@ -221,7 +221,7 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
     hdma_tim1_ch4_trig_com.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
     hdma_tim1_ch4_trig_com.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     hdma_tim1_ch4_trig_com.Init.Mode = DMA_CIRCULAR;
-    hdma_tim1_ch4_trig_com.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_tim1_ch4_trig_com.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     HAL_DMA_Init(&hdma_tim1_ch4_trig_com);
 
     /* Several peripheral DMA handle pointers point to the same DMA handle.

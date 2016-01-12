@@ -1,5 +1,36 @@
 #include "user_funcs.h"
 
+
+uint32_t adc_read(uint32_t u32_adc_chan)
+{
+	ADC_ChannelConfTypeDef sConfigADC;
+	uint32_t u32_adc_result = 0;
+	uint8_t j = 0;
+	uint8_t u8_num_conv = 10;
+
+	/* Configure channel */
+	sConfigADC.Rank = ADC_RANK_CHANNEL_NUMBER;
+	sConfigADC.Channel = u32_adc_chan;
+	hstat = HAL_ADC_ConfigChannel(&hadc, &sConfigADC);
+
+	/* Perform conversion */
+	hstat = HAL_ADC_Start(&hadc);
+	while(j<u8_num_conv)
+	{
+		hstat = HAL_ADC_PollForConversion(&hadc, 100);
+		u32_adc_result = u32_adc_result + HAL_ADC_GetValue(&hadc);
+		j++;
+	}
+	u32_adc_result = u32_adc_result / u8_num_conv;
+	hstat = HAL_ADC_Stop(&hadc);
+
+	/* Disable channel */
+	sConfigADC.Rank = ADC_RANK_NONE;
+	hstat = HAL_ADC_ConfigChannel(&hadc, &sConfigADC);
+
+	return u32_adc_result;
+}
+
 /* pwm_Start
  * Parameters:
  * 		htimx = timer handle
@@ -20,6 +51,13 @@ void pwm_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_
 	hstat = HAL_TIM_PWM_Start(&htimx, tim_channel);
 }
 
+/* pwm_sine_Start
+ * Description: Inject a sinusoidal signal using PWM
+ * Inputs: htimx - timer handle of PWM pin (htim1, etc.)
+ * 		   tim_channel - channel of PWM pin (TIM_CHANNEL_1, etc.)
+ * 		   u32_duty_cycle - the DC duty cycle on which the sine wave will be added. [0 - htimx.Init.Period]
+ * 		   NOTE: the duty cycle scale for this function is different from pwm_Start.
+ */
 void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_dc_duty_cycle, uint8_t u8_ampl)
 {
 	int32_t i32_pwm_ampl[SINE_RESOLUTION] = {0}; // amplitude of the sine wave expressed as a % of the pwm period
@@ -39,55 +77,24 @@ void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_
 
 }
 
-uint32_t adc_read(uint32_t u32_adc_chan)
-{
-	ADC_ChannelConfTypeDef sConfig;
-	uint32_t u32_adc_result = 0;
-	uint8_t j = 0;
-	uint8_t u8_num_conv = 10;
-
-	/* Configure channel */
-	sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
-	sConfig.Channel = u32_adc_chan;
-	hstat = HAL_ADC_ConfigChannel(&hadc, &sConfig);
-
-	/* Perform conversion */
-	hstat = HAL_ADC_Start(&hadc);
-	while(j<u8_num_conv)
-	{
-		hstat = HAL_ADC_PollForConversion(&hadc, 100);
-		u32_adc_result = u32_adc_result + HAL_ADC_GetValue(&hadc);
-		j++;
-	}
-	u32_adc_result = u32_adc_result / u8_num_conv;
-	hstat = HAL_ADC_Stop(&hadc);
-
-	/* Disable channel */
-	sConfig.Rank = ADC_RANK_NONE;
-	hstat = HAL_ADC_ConfigChannel(&hadc, &sConfig);
-
-	return u32_adc_result;
-}
-
 /* pi_ctrl
- * Description: PI control of a PWM pin using a single ADC input
+ * Description: Updates the PWM setting based on ADC reading
  * Inputs:  u32_stpt - the ADC setpoint to control to [0 - 4095]
+ * 			int32_t pwm_val - previously set PWM value
  * 		    u32_adc_chan - the ADC channel to read from (ADC_CHANNEL_1, etc)
- * 		    htimx - the timer handle for the PWM control pin
- * 		    u32_tim_channel - the timer channel (TIM_CHANNEL_1, etc)
- * Outputs: None
+ * Outputs: pwm_val - next PWM value
  */
-void pi_ctrl(uint32_t u32_stpt, uint32_t u32_adc_chan, TIM_HandleTypeDef htimx, uint32_t u32_tim_chan)
+int32_t pi_ctrl(uint32_t u32_stpt, int32_t pwm_val, uint32_t u32_adc_chan)
 {
    int32_t p = 0;
    int32_t i = 0;
-   //extern volatile int32_t pi_j;
    int32_t sign = 0;
    int32_t diff = 0;
    uint32_t adc_result = 0;
    //int32_t pwm_val = 0;
 
    adc_result = adc_read(u32_adc_chan);
+
    diff = (int32_t)adc_result - (int32_t)u32_stpt;
 
    if(abs(diff) > 20)
@@ -102,8 +109,7 @@ void pi_ctrl(uint32_t u32_stpt, uint32_t u32_adc_chan, TIM_HandleTypeDef htimx, 
    	  }
    	  p = sign * 1;
    	  i = sign*pi_j / 100;
-   	  pi_pwm_val = pi_pwm_val + p + i;
-   	  pwm_Start(htimx, u32_tim_chan, (uint32_t)pi_pwm_val);
+   	  pwm_val = pwm_val + p + i;
    	  pi_j++;
    	  }
    	  else
@@ -111,4 +117,5 @@ void pi_ctrl(uint32_t u32_stpt, uint32_t u32_adc_chan, TIM_HandleTypeDef htimx, 
    		  p = 0;
    		  pi_j = 0;
    	  }
+   return pwm_val;
 }
