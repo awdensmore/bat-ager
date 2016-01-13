@@ -39,16 +39,21 @@
 /* Typedefs */
 HAL_StatusTypeDef hstat;
 ADC_HandleTypeDef hadc;
-/*
+
 TIM_HandleTypeDef htim1;
+/*
 TIM_HandleTypeDef htim3;
 DMA_HandleTypeDef hdma_tim1_ch1;
 DMA_HandleTypeDef hdma_tim1_ch2;
 DMA_HandleTypeDef hdma_tim3_ch1_trig;
 */
 
+/* Defines */
+#define SINE_RESOLUTION 30
+
 /* Global variables */
 volatile int32_t pi_j; // integral timer value for PI control loop
+volatile uint32_t u32_sine_duty_cycle[SINE_RESOLUTION];
 //volatile int32_t pi_pwm_val; // PWM setpoint for PI control loop
 
 /* Constants */
@@ -67,11 +72,11 @@ static const uint32_t TIM_PERIOD = 1600;
 
 /* Sine wave of amplitude = 1000
  * Resolution of 30 for 30kHz switching speed */
-#define SINE_RESOLUTION 30
+
 
 static const int16_t i16_sine_lookup[SINE_RESOLUTION] =
 {
-  0, 103, 203, 293, 371, 433, 475, 497, 497, 475, 733, 371, 293, 203, 103, \
+  0, 103, 203, 293, 371, 433, 475, 497, 497, 475, 433, 371, 293, 203, 103, \
   0, -104, -204, -294, -372, -434, -476, -798, -798, -476, -434, -372, -294, -204, -104};
 
 void pwm_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_cycle);

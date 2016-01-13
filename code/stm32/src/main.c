@@ -40,7 +40,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 
-TIM_HandleTypeDef htim1;
+//TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim16;
 TIM_HandleTypeDef htim17;
@@ -114,9 +114,11 @@ int main(void)
   //adc_result = adc_read(ADC_CHANNEL_6);
 
   /* PWM Test */
-  uint32_t dc_pwm = 900;
-  uint32_t sine = 80;
+  uint32_t dc_pwm = 1400;
+  uint32_t sine = 12;
+  //HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_2, dc_pwm, (uint16_t)TEST_RES);
   pwm_sine_Start(htim1, TIM_CHANNEL_2, dc_pwm, sine);
+  //HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
   //pwm_Start(htim1, TIM_CHANNEL_2, 900);
 
   /* USER CODE END 2 */
@@ -125,12 +127,10 @@ int main(void)
 
   pi_j = 0;
   int32_t pi_pwm_val = 0;
-  uint32_t adc = 0;
 
   while (1)
   {
-	  //adc = test(ADC_CHANNEL_1);
-	  pi_pwm_val = pi_ctrl(100, pi_pwm_val, ADC_CHANNEL_1);
+	  pi_pwm_val = pi_ctrl(200, pi_pwm_val, ADC_CHANNEL_1);
 	  pwm_Start(htim3, TIM_CHANNEL_3, (uint32_t)pi_pwm_val);
   }
 

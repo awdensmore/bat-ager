@@ -61,7 +61,7 @@ void pwm_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_
 void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_dc_duty_cycle, uint8_t u8_ampl)
 {
 	int32_t i32_pwm_ampl[SINE_RESOLUTION] = {0}; // amplitude of the sine wave expressed as a % of the pwm period
-	uint32_t u32_pwm_duty_cycle[SINE_RESOLUTION] = {0}; // duty cycle expressed as [0 - htimx.Init.Period]
+	//uint32_t u32_pwm_duty_cycle[SINE_RESOLUTION] = {0}; // duty cycle expressed as [0 - htimx.Init.Period]
 	int32_t dc_check[SINE_RESOLUTION] = {0};
 	int32_t i32_max_period = (int32_t)htimx.Init.Period;
 
@@ -69,10 +69,10 @@ void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_
 	{
 		i32_pwm_ampl[i] = ((int32_t)i16_sine_lookup[i] * (int32_t)u8_ampl * i32_max_period) / (1000 * 100);
 		dc_check[i] = (int32_t)u32_dc_duty_cycle + i32_pwm_ampl[i];
-		u32_pwm_duty_cycle[i] = (uint32_t)max(min(i32_max_period, dc_check[i]), 0);
+		u32_sine_duty_cycle[i] = (uint32_t)max(min(i32_max_period, dc_check[i]), 0);
 	}
 
-	HAL_TIM_PWM_Start_DMA(&htimx, tim_channel, u32_pwm_duty_cycle, (uint16_t)SINE_RESOLUTION);
+	HAL_TIM_PWM_Start_DMA(&htimx, tim_channel, u32_sine_duty_cycle, (uint16_t)SINE_RESOLUTION);
 	HAL_Delay(10);
 
 }
@@ -80,7 +80,7 @@ void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_
 /* pi_ctrl
  * Description: Updates the PWM setting based on ADC reading
  * Inputs:  u32_stpt - the ADC setpoint to control to [0 - 4095]
- * 			int32_t pwm_val - previously set PWM value
+ * 			int32_t pwm_val - previously set PWM value [0 - 1000]
  * 		    u32_adc_chan - the ADC channel to read from (ADC_CHANNEL_1, etc)
  * Outputs: pwm_val - next PWM value
  */
@@ -107,9 +107,9 @@ int32_t pi_ctrl(uint32_t u32_stpt, int32_t pwm_val, uint32_t u32_adc_chan)
    	  {
    	     sign = -1;
    	  }
-   	  p = sign * 1;
-   	  i = sign*pi_j / 100;
-   	  pwm_val = pwm_val + p + i;
+   	  p = sign * abs(diff) / 10;
+   	  i = sign*pi_j / 10;
+   	  pwm_val = min(pwm_val + p + i, 1000);
    	  pi_j++;
    	  }
    	  else
