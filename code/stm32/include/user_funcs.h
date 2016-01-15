@@ -41,19 +41,22 @@ HAL_StatusTypeDef hstat;
 ADC_HandleTypeDef hadc;
 
 TIM_HandleTypeDef htim1;
-/*
 TIM_HandleTypeDef htim3;
+/*
 DMA_HandleTypeDef hdma_tim1_ch1;
 DMA_HandleTypeDef hdma_tim1_ch2;
 DMA_HandleTypeDef hdma_tim3_ch1_trig;
 */
 
 /* Defines */
-#define SINE_RESOLUTION 30
+#define SINE_RES_1KHZ  30
+#define SINE_RES_500HZ 60
+#define ADC_OVERCURRENT 4095 // Over-current shutdown if ADC reads above this value
+#define OC_TRIP_EVENTS 5 // allowable over-current events before shutdown
 
 /* Global variables */
 volatile int32_t pi_j; // integral timer value for PI control loop
-volatile uint32_t u32_sine_duty_cycle[SINE_RESOLUTION];
+volatile uint32_t u32_sine_duty_cycle[SINE_RES_500HZ];
 //volatile int32_t pi_pwm_val; // PWM setpoint for PI control loop
 
 /* Constants */
@@ -74,13 +77,23 @@ static const uint32_t TIM_PERIOD = 1600;
  * Resolution of 30 for 30kHz switching speed */
 
 
-static const int16_t i16_sine_lookup[SINE_RESOLUTION] =
+static const int16_t i16_sine1khz_lookup[SINE_RES_1KHZ] =
 {
   0, 103, 203, 293, 371, 433, 475, 497, 497, 475, 433, 371, 293, 203, 103, \
   0, -104, -204, -294, -372, -434, -476, -798, -798, -476, -434, -372, -294, -204, -104};
+
+static const int16_t i16_sine500hz_lookup[SINE_RES_500HZ] =
+{
+  0, 52, 104, 155, 203, 250, 294, 335, 372, 405, 433, 457, 476, 489, 497, \
+  500, 497, 489, 476, 457, 433, 405, 372, 335, 294, 250, 203, 155, 104, 52, \
+  0, -52, -104, -155, -203, -250, -294, -335, -372, -405, -433, -457, -476, -489, -497, \
+  -500, -497, -489, -476, -457, -433, -405, -372, -335, -294, -250, -203, -155, -104, -52,
+};
+
 
 void pwm_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_cycle);
 void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_dc_duty_cycle, uint8_t u8_ampl);
 uint32_t adc_read(uint32_t u32_adc_chan);
 int32_t pi_ctrl(uint32_t u32_stpt, int32_t pi_pwm_val, uint32_t u32_adc_chan);
+uint8_t oc_check(int32_t i32_pwm_val, uint8_t u8_oc_trip);
 

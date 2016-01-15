@@ -60,19 +60,19 @@ void pwm_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_
  */
 void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_dc_duty_cycle, uint8_t u8_ampl)
 {
-	int32_t i32_pwm_ampl[SINE_RESOLUTION] = {0}; // amplitude of the sine wave expressed as a % of the pwm period
+	int32_t i32_pwm_ampl[SINE_RES_500HZ] = {0}; // amplitude of the sine wave expressed as a % of the pwm period
 	//uint32_t u32_pwm_duty_cycle[SINE_RESOLUTION] = {0}; // duty cycle expressed as [0 - htimx.Init.Period]
-	int32_t dc_check[SINE_RESOLUTION] = {0};
+	int32_t dc_check[SINE_RES_500HZ] = {0};
 	int32_t i32_max_period = (int32_t)htimx.Init.Period;
 
-	for(uint8_t i=0; i<(uint8_t)SINE_RESOLUTION; i++)
+	for(uint8_t i=0; i<(uint8_t)SINE_RES_500HZ; i++)
 	{
-		i32_pwm_ampl[i] = ((int32_t)i16_sine_lookup[i] * (int32_t)u8_ampl * i32_max_period) / (1000 * 100);
+		i32_pwm_ampl[i] = ((int32_t)i16_sine500hz_lookup[i] * (int32_t)u8_ampl * i32_max_period) / (1000 * 100);
 		dc_check[i] = (int32_t)u32_dc_duty_cycle + i32_pwm_ampl[i];
 		u32_sine_duty_cycle[i] = (uint32_t)max(min(i32_max_period, dc_check[i]), 0);
 	}
 
-	HAL_TIM_PWM_Start_DMA(&htimx, tim_channel, u32_sine_duty_cycle, (uint16_t)SINE_RESOLUTION);
+	HAL_TIM_PWM_Start_DMA(&htimx, tim_channel, u32_sine_duty_cycle, (uint16_t)SINE_RES_500HZ);
 	HAL_Delay(10);
 
 }
@@ -94,6 +94,13 @@ int32_t pi_ctrl(uint32_t u32_stpt, int32_t pwm_val, uint32_t u32_adc_chan)
    //int32_t pwm_val = 0;
 
    adc_result = adc_read(u32_adc_chan);
+
+   /* over current protection */
+
+   if(adc_result > ADC_OVERCURRENT)
+   {
+	   return -1;
+   }
 
    diff = (int32_t)adc_result - (int32_t)u32_stpt;
 
@@ -118,4 +125,27 @@ int32_t pi_ctrl(uint32_t u32_stpt, int32_t pwm_val, uint32_t u32_adc_chan)
    		  pi_j = 0;
    	  }
    return pwm_val;
+}
+
+/* Over current check
+ * Shut system down if over-current detected
+ */
+uint8_t oc_check(int32_t i32_pwm_val, uint8_t u8_oc_trip)
+{
+	if(i32_pwm_val == -1)
+	{
+		u8_oc_trip++;
+	}
+	if(u8_oc_trip >= OC_TRIP_EVENTS)
+	{
+	  pwm_Start(htim3, TIM_CHANNEL_3, 0); // Turn off load
+	  pwm_Start(htim1, TIM_CHANNEL_2, TIM_PERIOD); // Turn off DC-DC converter
+	  HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_RESET); // Turn off charging
+	  while(1)
+	  {
+		  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin); // Toggle error LED;
+		  HAL_Delay(200);
+	  }
+	}
+	return u8_oc_trip;
 }

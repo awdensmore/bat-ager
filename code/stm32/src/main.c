@@ -41,7 +41,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 //TIM_HandleTypeDef htim1;
-TIM_HandleTypeDef htim3;
+//TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim16;
 TIM_HandleTypeDef htim17;
 DMA_HandleTypeDef hdma_tim1_ch1;
@@ -126,12 +126,15 @@ int main(void)
   /* Infinite loop */
 
   pi_j = 0;
-  int32_t pi_pwm_val = 0;
+  int32_t i32_pi_pwm_val = 0;
+  uint8_t u8_oc_trip = 0; // Track over current events
 
   while (1)
   {
-	  pi_pwm_val = pi_ctrl(200, pi_pwm_val, ADC_CHANNEL_1);
-	  pwm_Start(htim3, TIM_CHANNEL_3, (uint32_t)pi_pwm_val);
+	  i32_pi_pwm_val = pi_ctrl(2600, i32_pi_pwm_val, ADC_CHANNEL_1);
+	  /* over current protection */
+	  u8_oc_trip = oc_check(i32_pi_pwm_val, u8_oc_trip);
+	  pwm_Start(htim3, TIM_CHANNEL_3, (uint32_t)i32_pi_pwm_val);
   }
 
 
