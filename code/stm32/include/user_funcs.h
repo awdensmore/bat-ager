@@ -36,7 +36,7 @@
 
 #include "stm32f0xx_hal.h"
 
-/* Typedefs */
+/* HAL Typedefs */
 HAL_StatusTypeDef hstat;
 ADC_HandleTypeDef hadc;
 
@@ -73,6 +73,29 @@ static const uint32_t TIM_PERIOD = 1600;
        __typeof__ (b) _b = (b); \
      _a < _b ? _a : _b; })
 
+/* Enumeration */
+enum bat_status { DISCHARGE, LVDC, CC, CV, FULL};
+
+/* Structures */
+typedef struct status {
+	enum bat_status;
+}status;
+typedef struct pwm_timers {
+	TIM_HandleTypeDef conv_timer; // timer for the DC-DC converter PWM pins
+	TIM_HandleTypeDef dchg_timer; // timer for the discharge PWM pin
+}pwm_timers;
+typedef struct batpins {
+	uint32_t v_pin;         // the ADC channel measuring the battery voltage (ie ADC_CHANNEL_1)
+	uint32_t i_pin;         // the ADC channel measuring the battery current
+	uint32_t chg_pin;       // the GPIO for the on/off PFET on the power distribution PCB
+	uint32_t dchg_pin;      // the PWM pin for the discharge control pin on the power distribution PCB
+	uint32_t conv_chg_pin;  // the PWM pin for the buck FET on the DC-DC converter
+	uint32_t conv_dchg_pin; // the PWM pin for the boost FET on the DC-DC converter
+	pwm_timers pwm_tims;    // timers for the PWM pins (dchg, conv_chg & conv_dchg)
+}batpins;
+
+
+
 /* Sine wave of amplitude = 1000
  * Resolution of 30 for 30kHz switching speed */
 
@@ -91,9 +114,9 @@ static const int16_t i16_sine500hz_lookup[SINE_RES_500HZ] =
 };
 
 
-void pwm_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_cycle);
+void pwm_Set(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_cycle);
 void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_dc_duty_cycle, uint8_t u8_ampl);
 uint32_t adc_read(uint32_t u32_adc_chan);
 int32_t pi_ctrl(uint32_t u32_stpt, int32_t pi_pwm_val, uint32_t u32_adc_chan);
 uint8_t oc_check(int32_t i32_pwm_val, uint8_t u8_oc_trip);
-
+status dchg_ctrl(uint32_t u32_lvdc, uint32_t u32_istpt, uint32_t adc_chan_v, uint32_t adc_chan_i);

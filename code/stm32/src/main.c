@@ -134,8 +134,11 @@ int main(void)
   adc_val = adc_read(ADC_CHANNEL_1);
   pi_stpt = pi_stpt + adc_val;
 
+  enum bat_status bat_stat = FULL;
+
   while (1)
   {
+	  //bat_stat = FUNKY;
 	  adc_val = adc_read(ADC_CHANNEL_1);
 	  i32_pi_pwm_val = pi_ctrl(pi_stpt, i32_pi_pwm_val, ADC_CHANNEL_1);
 	  /* over current protection */

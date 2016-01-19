@@ -1,5 +1,9 @@
 #include "user_funcs.h"
 
+/* Global variables */
+pwm_timers bat1_timers = {htim1, htim3};
+batpins battery1 = {ADC_CHANNEL_0, ADC_CHANNEL_1, chg_onoff_1_Pin, TIM_CHANNEL_3, \
+					TIM_CHANNEL_1, TIM_CHANNEL_2, bat1_timers};
 
 uint32_t adc_read(uint32_t u32_adc_chan)
 {
@@ -37,7 +41,7 @@ uint32_t adc_read(uint32_t u32_adc_chan)
  * 		tim_channel = timer channel
  * 		u32_dc_duty_cycle = [0-1000] (ie, 0.1% precision) PWM duty cycle
  */
-void pwm_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_cycle)
+void pwm_Set(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_cycle)
 {
 	TIM_OC_InitTypeDef sConfigOC;
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
@@ -126,6 +130,36 @@ int32_t pi_ctrl(uint32_t u32_stpt, int32_t pwm_val, uint32_t u32_adc_chan)
    	  }
    return pwm_val;
 }
+
+/* dchg_ctrl
+ * Description: Control the discharge of a battery at a constant current. Disconnect the battery if
+ * 				voltage falls below set point.
+ * Inputs:
+ * 		  batteryx = struct containing information on the battery GPIO pins
+ * Output: battery status
+ */
+status dchg_ctrl(batpins batteryx, uint32_t u32_lvdc, uint32_t u32_istpt)
+{
+	uint32_t u32_v = 0;
+	uint32_t u32_i = 0;
+	status bat_stat;
+
+	u32_v = adc_read(batteryx.v_pin);
+	u32_i = adc_read(batteryx.i_pin);
+
+	/* Battery voltage below LVDC -> turn off load */
+	if(u32_v < u32_lvdc)
+	{
+		pwm_Set(batteryx.pwm_tims.dchg_timer, batteryx.conv_dchg_pin, 0);
+		bat_stat = LVDC;
+		return bat_stat;
+	}
+	/* battery not fully discharged, continue PI control */
+	else
+	{
+		pi_ctrl(u32_istpt, )
+	}
+};
 
 /* Over current check
  * Shut system down if over-current detected
