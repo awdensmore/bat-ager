@@ -114,8 +114,8 @@ int32_t pi_ctrl(uint32_t u32_stpt, int32_t pwm_val, uint32_t u32_adc_chan)
    	  {
    	     sign = -1;
    	  }
-   	  p = sign * abs(diff) / 10;
-   	  i = sign*pi_j / 10;
+   	  p = sign * abs(diff) / 100;
+   	  i = sign*pi_j / 100;
    	  pwm_val = min(pwm_val + p + i, 1000);
    	  pi_j++;
    	  }

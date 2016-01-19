@@ -127,11 +127,17 @@ int main(void)
 
   pi_j = 0;
   int32_t i32_pi_pwm_val = 0;
+  uint32_t pi_stpt = 100;
   uint8_t u8_oc_trip = 0; // Track over current events
+  uint32_t adc_val = 0;
+
+  adc_val = adc_read(ADC_CHANNEL_1);
+  pi_stpt = pi_stpt + adc_val;
 
   while (1)
   {
-	  i32_pi_pwm_val = pi_ctrl(2600, i32_pi_pwm_val, ADC_CHANNEL_1);
+	  adc_val = adc_read(ADC_CHANNEL_1);
+	  i32_pi_pwm_val = pi_ctrl(pi_stpt, i32_pi_pwm_val, ADC_CHANNEL_1);
 	  /* over current protection */
 	  u8_oc_trip = oc_check(i32_pi_pwm_val, u8_oc_trip);
 	  pwm_Start(htim3, TIM_CHANNEL_3, (uint32_t)i32_pi_pwm_val);
