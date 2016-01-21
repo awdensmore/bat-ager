@@ -104,8 +104,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   /* Initialize pins to 0 */
-  pwm_Start(htim1, TIM_CHANNEL_2, 1600); // PWM control
-  pwm_Start(htim3, TIM_CHANNEL_3, 0); // Discharge control
+  pwm_Set(htim1, TIM_CHANNEL_2, 1600); // PWM control
+  pwm_Set(htim3, TIM_CHANNEL_3, 0); // Discharge control
   HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_RESET); // Charging on/off
 
   /* ADC Test */
@@ -113,11 +113,14 @@ int main(void)
   //adc_result = adc_read(ADC_CHANNEL_1);
   //adc_result = adc_read(ADC_CHANNEL_6);
 
+  batpins battery1 = {ADC_CHANNEL_0, ADC_CHANNEL_1, chg_onoff_1_Pin, TIM_CHANNEL_3, \
+  					TIM_CHANNEL_1, TIM_CHANNEL_2, {htim1, htim3}};//, bat1_timers};
+
   /* PWM Test */
   uint32_t dc_pwm = 1400;
   uint32_t sine = 12;
   //HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_2, dc_pwm, (uint16_t)TEST_RES);
-  pwm_sine_Start(htim1, TIM_CHANNEL_2, dc_pwm, sine);
+  pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin, dc_pwm, sine);
   //HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
   //pwm_Start(htim1, TIM_CHANNEL_2, 900);
 
@@ -127,23 +130,28 @@ int main(void)
 
   pi_j = 0;
   int32_t i32_pi_pwm_val = 0;
-  uint32_t pi_stpt = 100;
+  uint32_t pi_stpt = 200;
   uint8_t u8_oc_trip = 0; // Track over current events
   uint32_t adc_val = 0;
+  status bat_stat = OK;
 
   adc_val = adc_read(ADC_CHANNEL_1);
   pi_stpt = pi_stpt + adc_val;
 
-  enum bat_status bat_stat = FULL;
+  //pwm_Set(battery1.pwm_tims.dchg_timer, battery1.dchg_pin, 740);
 
   while (1)
   {
-	  //bat_stat = FUNKY;
-	  adc_val = adc_read(ADC_CHANNEL_1);
-	  i32_pi_pwm_val = pi_ctrl(pi_stpt, i32_pi_pwm_val, ADC_CHANNEL_1);
-	  /* over current protection */
-	  u8_oc_trip = oc_check(i32_pi_pwm_val, u8_oc_trip);
-	  pwm_Start(htim3, TIM_CHANNEL_3, (uint32_t)i32_pi_pwm_val);
+	  //adc_val = adc_read(ADC_CHANNEL_1);
+	  if(bat_stat != LVDC)
+	  {
+	  bat_stat = dchg_ctrl(battery1, 1000, pi_stpt, &i32_pi_pwm_val);
+	  }
+	  else
+	  {
+
+	  }
+
   }
 
 

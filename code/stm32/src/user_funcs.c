@@ -1,9 +1,7 @@
 #include "user_funcs.h"
 
 /* Global variables */
-pwm_timers bat1_timers = {htim1, htim3};
-batpins battery1 = {ADC_CHANNEL_0, ADC_CHANNEL_1, chg_onoff_1_Pin, TIM_CHANNEL_3, \
-					TIM_CHANNEL_1, TIM_CHANNEL_2, bat1_timers};
+
 
 uint32_t adc_read(uint32_t u32_adc_chan)
 {
@@ -101,14 +99,14 @@ int32_t pi_ctrl(uint32_t u32_stpt, int32_t pwm_val, uint32_t u32_adc_chan)
 
    /* over current protection */
 
-   if(adc_result > ADC_OVERCURRENT)
+   /*if(adc_result > ADC_OVERCURRENT)
    {
 	   return -1;
-   }
+   }*/
 
    diff = (int32_t)adc_result - (int32_t)u32_stpt;
 
-   if(abs(diff) > 20)
+   if(abs(diff) > 100)
    {
       if(abs(diff) != diff)
    	  {
@@ -118,8 +116,8 @@ int32_t pi_ctrl(uint32_t u32_stpt, int32_t pwm_val, uint32_t u32_adc_chan)
    	  {
    	     sign = -1;
    	  }
-   	  p = sign * abs(diff) / 100;
-   	  i = sign*pi_j / 100;
+   	  p = sign * abs(diff) / 10;
+   	  i = sign*pi_j / 10;
    	  pwm_val = min(pwm_val + p + i, 1000);
    	  pi_j++;
    	  }
@@ -138,26 +136,30 @@ int32_t pi_ctrl(uint32_t u32_stpt, int32_t pwm_val, uint32_t u32_adc_chan)
  * 		  batteryx = struct containing information on the battery GPIO pins
  * Output: battery status
  */
-status dchg_ctrl(batpins batteryx, uint32_t u32_lvdc, uint32_t u32_istpt)
+status dchg_ctrl(batpins batteryx, uint32_t u32_lvdc, uint32_t u32_istpt, int32_t* pi32_pwm_val)
 {
 	uint32_t u32_v = 0;
 	uint32_t u32_i = 0;
 	status bat_stat;
 
-	u32_v = adc_read(batteryx.v_pin);
-	u32_i = adc_read(batteryx.i_pin);
+	u32_v = adc_read(batteryx.v_adc_chan);
+	u32_i = adc_read(batteryx.i_adc_chan);
 
 	/* Battery voltage below LVDC -> turn off load */
 	if(u32_v < u32_lvdc)
 	{
-		pwm_Set(batteryx.pwm_tims.dchg_timer, batteryx.conv_dchg_pin, 0);
+		pwm_Set(batteryx.pwm_tims.dchg_timer, batteryx.dchg_pin, 0);
 		bat_stat = LVDC;
 		return bat_stat;
 	}
-	/* battery not fully discharged, continue PI control */
+	/* battery not fully discharged -> continue PI control */
 	else
 	{
-		pi_ctrl(u32_istpt, )
+		*pi32_pwm_val = pi_ctrl(u32_istpt, *pi32_pwm_val, batteryx.i_adc_chan);
+		// Need to add oc_check here to ensure *pi32_pwm_val !< 0.
+		pwm_Set(batteryx.pwm_tims.dchg_timer, batteryx.dchg_pin, (uint32_t)*pi32_pwm_val);
+		bat_stat = DISCHARGE;
+		return bat_stat;
 	}
 };
 
@@ -172,8 +174,8 @@ uint8_t oc_check(int32_t i32_pwm_val, uint8_t u8_oc_trip)
 	}
 	if(u8_oc_trip >= OC_TRIP_EVENTS)
 	{
-	  pwm_Start(htim3, TIM_CHANNEL_3, 0); // Turn off load
-	  pwm_Start(htim1, TIM_CHANNEL_2, TIM_PERIOD); // Turn off DC-DC converter
+	  pwm_Set(htim3, TIM_CHANNEL_3, 0); // Turn off load
+	  pwm_Set(htim1, TIM_CHANNEL_2, TIM_PERIOD); // Turn off DC-DC converter
 	  HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_RESET); // Turn off charging
 	  while(1)
 	  {
