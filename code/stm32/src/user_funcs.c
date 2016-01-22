@@ -122,13 +122,13 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, uint
 	   {
 		   p = -(diff / 20);
 		   pi_j++;
-		   pwm_val_new += min((p+pi_j), 1000);//(uint32_t)max(min(p + pi_j, 1000), 0);
+		   pwm_val_new += min((p+pi_j*(1+4*(p/2))), 1000);
 	   }
 	   else // ADC reading is above set point
 	   {
 		   p = -(diff / 20);
 		   pi_j++;
-		   pwm_val_new += min((p-pi_j*(1-20*(p/2))), 1000);//(uint32_t)max(min(p - pi_j*(1-p/2), 1000), 0); //
+		   pwm_val_new += min((p-pi_j*(1-30*(p/2))), 1000);
 	   }
    }
    else
@@ -142,6 +142,34 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, uint
    return (uint32_t)pwm_val_new;
 }
 
+status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
+{
+	status bat_stat = DISCHARGE;
+
+	batpropsx->i_adc_val = batpropsx->i_adc_val / counter; // Average current reading
+	batpropsx->v_adc_val = batpropsx->v_adc_val / counter; // Average voltage reading
+
+	/* Determine appropriate pwm value for the discharge FET */
+	batpropsx->pwm_dchg_stpt = pi_ctrl(batpropsx->i_adc_stpt, batpropsx->pwm_dchg_stpt,\
+			batpropsx->i_adc_val, batpropsx->i_adc_val_old);
+
+	/* Set old current reading and re-set counter */
+	batpropsx->i_adc_val_old = batpropsx->i_adc_val;
+	batpropsx->i_adc_val = 0;
+
+	/* Check for low voltage disconnect */
+	if(batpropsx->v_adc_val < (uint32_t)LVDC_ADC_VAL)
+	{
+		batpropsx->pwm_dchg_stpt = 0;
+		bat_stat = LVDC;
+	}
+
+	/* Set the discharge FET */
+	pwm_Set(batteryx.pwm_tims.dchg_timer, batteryx.dchg_pin, batpropsx->pwm_dchg_stpt);
+
+	return bat_stat;
+}
+
 /* dchg_ctrl
  * Description: Control the discharge of a battery at a constant current. Disconnect the battery if
  * 				voltage falls below set point.
@@ -149,7 +177,7 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, uint
  * 		  batteryx = struct containing information on the battery GPIO pins
  * Output: battery status
  */
-status dchg_ctrl(batpins batteryx, uint32_t u32_lvdc, uint32_t u32_istpt, int32_t* pi32_pwm_val)
+status dchg_ctrl2(batpins batteryx, uint32_t u32_lvdc, uint32_t u32_istpt, int32_t* pi32_pwm_val)
 {
 	uint32_t u32_v = 0;
 	uint32_t u32_i = 0;
@@ -175,6 +203,7 @@ status dchg_ctrl(batpins batteryx, uint32_t u32_lvdc, uint32_t u32_istpt, int32_
 		return bat_stat;
 	}
 };
+
 
 /* Over current check
  * Shut system down if over-current detected

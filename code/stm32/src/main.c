@@ -101,76 +101,51 @@ int main(void)
   MX_TIM17_Init();
   MX_USART2_UART_Init();
 
+  /* Define battery pins */
   batpins battery1 = {ADC_CHANNEL_0, ADC_CHANNEL_1, chg_onoff_1_Pin, TIM_CHANNEL_3, \
-  					TIM_CHANNEL_1, TIM_CHANNEL_2, {htim1, htim3}};//, bat1_timers};
+  					TIM_CHANNEL_1, TIM_CHANNEL_2, {htim1, htim3}};
+
+  /* Initialize battery properties: set points and initial ADC readings */
+  /* Battery 1 */
+  batprops props_bat1;
+  props_bat1.i_adc_val = 0;
+  props_bat1.i_adc_val_old = adc_read(battery1.i_adc_chan);
+  props_bat1.i_adc_stpt = 200 + props_bat1.i_adc_val_old;
+  props_bat1.v_adc_stpt = 1000; // Not sure what this should be.
+  props_bat1.pwm_dchg_stpt = 720; // Initialize near where discharge FET turns on
 
   /* Initialize pins to 0 */
   pwm_Set(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin, 1600); // PWM control
   pwm_Set(battery1.pwm_tims.dchg_timer, battery1.dchg_pin, 0); // Discharge control
   HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_RESET); // Charging on/off
 
-  /* ADC Test */
-  //adc_result = adc_read(ADC_CHANNEL_0);
-  //adc_result = adc_read(ADC_CHANNEL_1);
-  //adc_result = adc_read(ADC_CHANNEL_6);
-
-
-  /* PWM Test */
+  /* Initialize Converter output */
   uint32_t dc_pwm = 1320;
   uint32_t sine = 15;
-  //HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_2, dc_pwm, (uint16_t)TEST_RES);
   pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin, dc_pwm, sine);
-  //HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-  //pwm_Start(htim1, TIM_CHANNEL_2, 900);
 
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-
+  /* Initialize global variables */
   TimeCounter = 0;
   pi_j = 0;
-  uint32_t u32_adc_stpt = 200;
-  uint32_t adc_val = 0;
-  uint32_t adc_val_old = 0;
   uint32_t i = 0;
   uint32_t u32_pwm_stpt = 720;
   status bat_stat = OK;
 
-  int32_t yo = -5;
-  uint32_t yo2 = (uint32_t)yo;
-
-  adc_val = adc_read(ADC_CHANNEL_1);
-  u32_adc_stpt = u32_adc_stpt + adc_val;
-  adc_val_old = adc_val;
-  adc_val = 0;
 
   pwm_Set(battery1.pwm_tims.dchg_timer, battery1.dchg_pin, u32_pwm_stpt);
 
   while (1)
   {
-	  if(TimeCounter>=2*1600)
+	  if(TimeCounter>=2*1600) // 4ms, ie 2 periods of 500Hz sine wave
 	  {
-		  adc_val = adc_val / i;
-		  u32_pwm_stpt = pi_ctrl(u32_adc_stpt, u32_pwm_stpt, adc_val, adc_val_old);
-		  pwm_Set(battery1.pwm_tims.dchg_timer, battery1.dchg_pin, u32_pwm_stpt);
-		  adc_val_old = adc_val;
-		  adc_val = 0;
+		  bat_stat = dchg_ctrl(battery1, &props_bat1, i);
 		  TimeCounter = 0;
 		  i = 0;
 	  }
-	  adc_val += adc_read(battery1.i_adc_chan);
+	  props_bat1.i_adc_val += adc_read(battery1.i_adc_chan);
+	  props_bat1.v_adc_val += adc_read(battery1.v_adc_chan);
 	  i++;
 	  HAL_SYSTICK_IRQHandler();
-/*
-	  if(bat_stat != LVDC)
-	  {
-	  bat_stat = dchg_ctrl(battery1, 1000, pi_stpt, &i32_pi_pwm_val);
-	  }
-	  else
-	  {
-
-	  }
-*/
   }
 
 

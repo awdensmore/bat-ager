@@ -53,6 +53,7 @@ DMA_HandleTypeDef hdma_tim3_ch1_trig;
 #define SINE_RES_500HZ 60
 #define ADC_OVERCURRENT 4095 // Over-current shutdown if ADC reads above this value
 #define OC_TRIP_EVENTS 5 // allowable over-current events before shutdown
+#define LVDC_ADC_VAL 1000 // ADC reading below which disconnect load from battery
 
 /* Global variables */
 volatile int32_t pi_j; // integral timer value for PI control loop
@@ -92,6 +93,14 @@ typedef struct batpins {
 	uint32_t conv_dchg_pin; // the PWM pin for the boost FET on the DC-DC converter
 	pwm_timers pwm_tims;    // timers for the PWM pins (dchg, conv_chg & conv_dchg)
 }batpins;
+typedef struct batprops {
+	uint32_t i_adc_stpt;
+	uint32_t v_adc_stpt; // maximum battery voltage
+	uint32_t pwm_dchg_stpt;
+	uint32_t i_adc_val;
+	uint32_t i_adc_val_old;
+	uint32_t v_adc_val;
+}batprops;
 
 
 
@@ -118,4 +127,5 @@ void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_
 uint32_t adc_read(uint32_t u32_adc_chan);
 uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, uint32_t u32_adc_val_old);
 uint8_t oc_check(int32_t i32_pwm_val, uint8_t u8_oc_trip);
-status dchg_ctrl(batpins batteryx, uint32_t u32_lvdc, uint32_t u32_istpt, int32_t* pi32_pwm_val);
+status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter);
+status dchg_ctrl2(batpins batteryx, uint32_t u32_lvdc, uint32_t u32_istpt, int32_t* pi32_pwm_val);
