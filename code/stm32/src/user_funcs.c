@@ -3,6 +3,12 @@
 /* Global variables */
 
 
+void HAL_SYSTICK_IRQHandler(void)
+{
+  TimeCounter++;
+  HAL_SYSTICK_Callback();
+}
+
 uint32_t adc_read(uint32_t u32_adc_chan)
 {
 	ADC_ChannelConfTypeDef sConfigADC;
@@ -86,47 +92,54 @@ void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_
  * 		    u32_adc_chan - the ADC channel to read from (ADC_CHANNEL_1, etc)
  * Outputs: pwm_val - next PWM value
  */
-int32_t pi_ctrl(uint32_t u32_stpt, int32_t pwm_val, uint32_t u32_adc_chan)
+uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, uint32_t u32_adc_val_old)
 {
    int32_t p = 0;
    int32_t i = 0;
-   int32_t sign = 0;
    int32_t diff = 0;
-   uint32_t adc_result = 0;
-   //int32_t pwm_val = 0;
+   int32_t diff_old = 0;
+   uint32_t sign = 0;
+   uint32_t sign_old = 0;
+   uint32_t err = 10;
+   uint32_t mask = 1<<31;
+   int32_t pwm_val_new = (int32_t)pwm_val;
 
-   adc_result = adc_read(u32_adc_chan);
+   diff = (int32_t)u32_adc_val - (int32_t)u32_stpt;
+   diff_old = (int32_t)u32_adc_val_old - (int32_t)u32_stpt;
+   sign = (diff & mask)>>31;
+   sign_old = (diff_old & mask)>>31;
 
-   /* over current protection */
-
-   /*if(adc_result > ADC_OVERCURRENT)
+   /* Set pi_j (integral gain) to 0 if set point has been crossed between readings */
+   if(sign != sign_old)
    {
-	   return -1;
-   }*/
+	   pi_j = 0;
+   }
 
-   diff = (int32_t)adc_result - (int32_t)u32_stpt;
-
-   if(abs(diff) > 100)
+   /* determine if ADC reading is outside allowable error from set point */
+   if(abs(diff) > err)
    {
-      if(abs(diff) != diff)
-   	  {
-   		  sign = 1;
-   	  }
-   	  else
-   	  {
-   	     sign = -1;
-   	  }
-   	  p = sign * abs(diff) / 10;
-   	  i = sign*pi_j / 10;
-   	  pwm_val = min(pwm_val + p + i, 1000);
-   	  pi_j++;
-   	  }
-   	  else
-   	  {
-   		  p = 0;
-   		  pi_j = 0;
-   	  }
-   return pwm_val;
+	   if(sign) // ADC reading is below set point
+	   {
+		   p = -(diff / 20);
+		   pi_j++;
+		   pwm_val_new += min((p+pi_j), 1000);//(uint32_t)max(min(p + pi_j, 1000), 0);
+	   }
+	   else // ADC reading is above set point
+	   {
+		   p = -(diff / 20);
+		   pi_j++;
+		   pwm_val_new += min((p-pi_j*(1-20*(p/2))), 1000);//(uint32_t)max(min(p - pi_j*(1-p/2), 1000), 0); //
+	   }
+   }
+   else
+   {
+	   pi_j = 0;
+   }
+   if(pwm_val_new < 0)
+   {
+	   pwm_val_new = 0;
+   }
+   return (uint32_t)pwm_val_new;
 }
 
 /* dchg_ctrl
@@ -155,7 +168,7 @@ status dchg_ctrl(batpins batteryx, uint32_t u32_lvdc, uint32_t u32_istpt, int32_
 	/* battery not fully discharged -> continue PI control */
 	else
 	{
-		*pi32_pwm_val = pi_ctrl(u32_istpt, *pi32_pwm_val, batteryx.i_adc_chan);
+		//*pi32_pwm_val = pi_ctrl(u32_istpt, *pi32_pwm_val, batteryx.i_adc_chan);
 		// Need to add oc_check here to ensure *pi32_pwm_val !< 0.
 		pwm_Set(batteryx.pwm_tims.dchg_timer, batteryx.dchg_pin, (uint32_t)*pi32_pwm_val);
 		bat_stat = DISCHARGE;

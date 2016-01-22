@@ -57,6 +57,7 @@ DMA_HandleTypeDef hdma_tim3_ch1_trig;
 /* Global variables */
 volatile int32_t pi_j; // integral timer value for PI control loop
 volatile uint32_t u32_sine_duty_cycle[SINE_RES_500HZ];
+uint32_t TimeCounter;
 //volatile int32_t pi_pwm_val; // PWM setpoint for PI control loop
 
 /* Constants */
@@ -108,13 +109,13 @@ static const int16_t i16_sine500hz_lookup[SINE_RES_500HZ] =
   0, 52, 104, 155, 203, 250, 294, 335, 372, 405, 433, 457, 476, 489, 497, \
   500, 497, 489, 476, 457, 433, 405, 372, 335, 294, 250, 203, 155, 104, 52, \
   0, -52, -104, -155, -203, -250, -294, -335, -372, -405, -433, -457, -476, -489, -497, \
-  -500, -497, -489, -476, -457, -433, -405, -372, -335, -294, -250, -203, -155, -104, -52,
+  -500, -497, -489, -476, -457, -433, -405, -372, -335, -294, -250, -203, -155, -104, -52
 };
 
-
+void HAL_SYSTICK_IRQHandler(void);
 void pwm_Set(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_cycle);
 void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_dc_duty_cycle, uint8_t u8_ampl);
 uint32_t adc_read(uint32_t u32_adc_chan);
-int32_t pi_ctrl(uint32_t u32_stpt, int32_t pi_pwm_val, uint32_t u32_adc_chan);
+uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, uint32_t u32_adc_val_old);
 uint8_t oc_check(int32_t i32_pwm_val, uint8_t u8_oc_trip);
 status dchg_ctrl(batpins batteryx, uint32_t u32_lvdc, uint32_t u32_istpt, int32_t* pi32_pwm_val);
