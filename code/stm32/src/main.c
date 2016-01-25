@@ -40,8 +40,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 
-//TIM_HandleTypeDef htim1;
-//TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim16;
 TIM_HandleTypeDef htim17;
 DMA_HandleTypeDef hdma_tim1_ch1;
@@ -120,8 +118,8 @@ int main(void)
   HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_RESET); // Charging on/off
 
   /* Initialize Converter output */
-  uint32_t dc_pwm = 1320;
-  uint32_t sine = 15;
+  uint32_t dc_pwm = 1390;
+  uint32_t sine = 12;
   pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin, dc_pwm, sine);
 
   /* Initialize global variables */
@@ -141,6 +139,14 @@ int main(void)
 		  bat_stat = dchg_ctrl(battery1, &props_bat1, i);
 		  TimeCounter = 0;
 		  i = 0;
+	  }
+	  if(bat_stat == LVDC)
+	  {
+		  while(1)
+		  {
+			  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+		      HAL_Delay(200);
+		  }
 	  }
 	  props_bat1.i_adc_val += adc_read(battery1.i_adc_chan);
 	  props_bat1.v_adc_val += adc_read(battery1.v_adc_chan);

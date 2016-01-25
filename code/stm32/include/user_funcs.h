@@ -53,13 +53,12 @@ DMA_HandleTypeDef hdma_tim3_ch1_trig;
 #define SINE_RES_500HZ 60
 #define ADC_OVERCURRENT 4095 // Over-current shutdown if ADC reads above this value
 #define OC_TRIP_EVENTS 5 // allowable over-current events before shutdown
-#define LVDC_ADC_VAL 1000 // ADC reading below which disconnect load from battery
+#define LVDC_ADC_VAL 2719 // ADC reading below which disconnect load from battery
 
 /* Global variables */
 volatile int32_t pi_j; // integral timer value for PI control loop
 volatile uint32_t u32_sine_duty_cycle[SINE_RES_500HZ];
 uint32_t TimeCounter;
-//volatile int32_t pi_pwm_val; // PWM setpoint for PI control loop
 
 /* Constants */
 static const uint32_t TIM_PERIOD = 1600;
