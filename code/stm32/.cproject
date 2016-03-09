@@ -140,9 +140,6 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1582821795.2142278110" name="user_funcs.c" rcbsApplicability="disable" resourcePath="src/user_funcs.c" toolsToInvoke="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1595539413.883038688">
-						<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1595539413.883038688" name="Cross ARM C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1595539413"/>
-					</fileInfo>
 					<fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1582821795.434193748" name="user_funcs.h" rcbsApplicability="disable" resourcePath="include/user_funcs.h" toolsToInvoke=""/>
 					<sourceEntries>
 						<entry excluding="main_old.c|oldstm32f0xx_it.c|oldstm32f0xx_hal_msp.c|oldmain.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>

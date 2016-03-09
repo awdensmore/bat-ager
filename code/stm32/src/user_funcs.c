@@ -75,7 +75,7 @@ void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_
 
 	for(uint8_t i=0; i<(uint8_t)SINE_RES_500HZ; i++)
 	{
-		i32_pwm_ampl[i] = ((int32_t)i16_sine500hz_lookup[i] * (int32_t)u8_ampl * i32_max_period) / (1000 * 100);
+		i32_pwm_ampl[i] = ((int32_t)i16_sine500hz_lookup[i] * (int32_t)u8_ampl * i32_max_period) / (1000 * 1000);
 		dc_check[i] = (int32_t)u32_dc_duty_cycle + i32_pwm_ampl[i];
 		u32_sine_duty_cycle[i] = (uint32_t)max(min(i32_max_period, dc_check[i]), 0);
 	}
@@ -87,7 +87,7 @@ void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_
 
 /* pi_ctrl
  * Description: Updates the PWM setting based on ADC reading
- * Inputs:  u32_stpt - the ADC setpoint to control to [0 - 4095]
+ * Inputs:  u32_stpt - the ADC set point to control to [0 - 4095]
  * 			int32_t pwm_val - previously set PWM value [0 - 1000]
  * 		    u32_adc_chan - the ADC channel to read from (ADC_CHANNEL_1, etc)
  * Outputs: pwm_val - next PWM value
@@ -95,7 +95,7 @@ void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_
 uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, uint32_t u32_adc_val_old)
 {
    int32_t p = 0;
-   int32_t i = 0;
+   //int32_t i = 0; unused - probably can remove
    int32_t diff = 0;
    int32_t diff_old = 0;
    uint32_t sign = 0;
@@ -116,19 +116,19 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, uint
    }
 
    /* determine if ADC reading is outside allowable error from set point */
-   if(abs(diff) > err)
+   if((uint32_t)abs(diff) > err)
    {
 	   if(sign) // ADC reading is below set point
 	   {
 		   p = -(diff / 20);
 		   pi_j++;
-		   pwm_val_new += min((p+pi_j*(1+4*(p/2))), 1000);
+		   pwm_val_new += min((p+pi_j*(1+4*(p/2))), 1000); // slow increase
 	   }
 	   else // ADC reading is above set point
 	   {
 		   p = -(diff / 20);
 		   pi_j++;
-		   pwm_val_new += min((p-pi_j*(1-30*(p/2))), 1000);
+		   pwm_val_new += min((p-pi_j*(1-30*(p/2))), 1000); // fast decrease for safety
 	   }
    }
    else
@@ -150,12 +150,8 @@ status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	batpropsx->v_adc_val = batpropsx->v_adc_val / counter; // Average voltage reading
 
 	/* Determine appropriate pwm value for the discharge FET */
-	batpropsx->pwm_dchg_stpt = pi_ctrl(batpropsx->i_adc_stpt, batpropsx->pwm_dchg_stpt,\
+	batpropsx->pwm_dchg_stpt = pi_ctrl(batpropsx->id_adc_stpt, batpropsx->pwm_dchg_stpt,\
 			batpropsx->i_adc_val, batpropsx->i_adc_val_old);
-
-	/* Set old current reading and re-set counter */
-	batpropsx->i_adc_val_old = batpropsx->i_adc_val;
-	batpropsx->i_adc_val = 0;
 
 	/* Check for low voltage disconnect */
 	if(batpropsx->v_adc_val < (uint32_t)LVDC_ADC_VAL)
@@ -167,8 +163,30 @@ status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	/* Set the discharge FET */
 	pwm_Set(batteryx.pwm_tims.dchg_timer, batteryx.dchg_pin, batpropsx->pwm_dchg_stpt);
 
+	/* Set ADC readings and re-set counter */
+	batpropsx->i_adc_val_old = batpropsx->i_adc_val;
+	batpropsx->i_adc_val = 0;
+	batpropsx->v_adc_val = 0;
+
 	return bat_stat;
 }
+
+/* chg_ctrl
+ * Description: CC/CV charging of the battery. End charging when battery reaches voltage setpoint
+ * Inputs:
+ * 		batteryx = struct containing information on the battery GPIO pins
+ * 		batprops = properties of the battery (including adc readings and set points)
+ * Returns:
+ * 		Battery status
+ */
+status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
+
+	batpropsx->i_adc_val = batpropsx->i_adc_val / counter; // Average current reading
+	batpropsx->v_adc_val = batpropsx->v_adc_val / counter; // Average voltage reading
+
+	/* Determine appropriate pwm value for the charge FET on DC-DC converter */
+	batpropsx->pwm_chg_stpt = pi_ctrl(batpropsx->ic_adc_stpt, batpropsx->pwm_chg_stpt,\
+				batpropsx->i_adc_val, batpropsx->i_adc_val_old);
 
 /* dchg_ctrl
  * Description: Control the discharge of a battery at a constant current. Disconnect the battery if
@@ -177,7 +195,7 @@ status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
  * 		  batteryx = struct containing information on the battery GPIO pins
  * Output: battery status
  */
-status dchg_ctrl2(batpins batteryx, uint32_t u32_lvdc, uint32_t u32_istpt, int32_t* pi32_pwm_val)
+/*status dchg_ctrl2(batpins batteryx, uint32_t u32_lvdc, uint32_t u32_istpt, int32_t* pi32_pwm_val)
 {
 	uint32_t u32_v = 0;
 	uint32_t u32_i = 0;
@@ -186,14 +204,14 @@ status dchg_ctrl2(batpins batteryx, uint32_t u32_lvdc, uint32_t u32_istpt, int32
 	u32_v = adc_read(batteryx.v_adc_chan);
 	u32_i = adc_read(batteryx.i_adc_chan);
 
-	/* Battery voltage below LVDC -> turn off load */
+	 Battery voltage below LVDC -> turn off load
 	if(u32_v < u32_lvdc)
 	{
 		pwm_Set(batteryx.pwm_tims.dchg_timer, batteryx.dchg_pin, 0);
 		bat_stat = LVDC;
 		return bat_stat;
 	}
-	/* battery not fully discharged -> continue PI control */
+	 battery not fully discharged -> continue PI control
 	else
 	{
 		//*pi32_pwm_val = pi_ctrl(u32_istpt, *pi32_pwm_val, batteryx.i_adc_chan);
@@ -205,9 +223,9 @@ status dchg_ctrl2(batpins batteryx, uint32_t u32_lvdc, uint32_t u32_istpt, int32
 };
 
 
-/* Over current check
- * Shut system down if over-current detected
- */
+ Over current check
+  Shut system down if over-current detected
+
 uint8_t oc_check(int32_t i32_pwm_val, uint8_t u8_oc_trip)
 {
 	if(i32_pwm_val == -1)
@@ -226,4 +244,4 @@ uint8_t oc_check(int32_t i32_pwm_val, uint8_t u8_oc_trip)
 	  }
 	}
 	return u8_oc_trip;
-}
+}*/

@@ -93,8 +93,10 @@ typedef struct batpins {
 	pwm_timers pwm_tims;    // timers for the PWM pins (dchg, conv_chg & conv_dchg)
 }batpins;
 typedef struct batprops {
-	uint32_t i_adc_stpt;
+	uint32_t ic_adc_stpt; // current set point during charging
+	uint32_t id_adc_stpt; // current set point during discharge
 	uint32_t v_adc_stpt; // maximum battery voltage
+	uint32_t pwm_chg_stpt; // pwm set point for charging FET on DC-DC converter
 	uint32_t pwm_dchg_stpt;
 	uint32_t i_adc_val;
 	uint32_t i_adc_val_old;

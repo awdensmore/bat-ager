@@ -108,7 +108,7 @@ int main(void)
   batprops props_bat1;
   props_bat1.i_adc_val = 0;
   props_bat1.i_adc_val_old = adc_read(battery1.i_adc_chan);
-  props_bat1.i_adc_stpt = 200 + props_bat1.i_adc_val_old;
+  props_bat1.id_adc_stpt = 200 + props_bat1.i_adc_val_old;
   props_bat1.v_adc_stpt = 1000; // Not sure what this should be.
   props_bat1.pwm_dchg_stpt = 720; // Initialize near where discharge FET turns on
 
@@ -118,9 +118,11 @@ int main(void)
   HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_RESET); // Charging on/off
 
   /* Initialize Converter output */
-  uint32_t dc_pwm = 1390;
-  uint32_t sine = 12;
-  pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin, dc_pwm, sine);
+  uint32_t dc_pwm = 1200;
+  uint32_t sine = 5;
+  //pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
+  HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_SET); // Charging On
+  pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_chg_pin, dc_pwm, sine); // Buck (charge)
 
   /* Initialize global variables */
   TimeCounter = 0;
@@ -128,7 +130,6 @@ int main(void)
   uint32_t i = 0;
   uint32_t u32_pwm_stpt = 720;
   status bat_stat = OK;
-
 
   pwm_Set(battery1.pwm_tims.dchg_timer, battery1.dchg_pin, u32_pwm_stpt);
 
