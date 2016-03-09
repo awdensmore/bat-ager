@@ -151,7 +151,7 @@ status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 
 	/* Determine appropriate pwm value for the discharge FET */
 	batpropsx->pwm_dchg_stpt = pi_ctrl(batpropsx->id_adc_stpt, batpropsx->pwm_dchg_stpt,\
-			batpropsx->i_adc_val, batpropsx->i_adc_val_old);
+			batpropsx->i_adc_val, batpropsx->adc_val_old);
 
 	/* Check for low voltage disconnect */
 	if(batpropsx->v_adc_val < (uint32_t)LVDC_ADC_VAL)
@@ -163,8 +163,8 @@ status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	/* Set the discharge FET */
 	pwm_Set(batteryx.pwm_tims.dchg_timer, batteryx.dchg_pin, batpropsx->pwm_dchg_stpt);
 
-	/* Set ADC readings and re-set counter */
-	batpropsx->i_adc_val_old = batpropsx->i_adc_val;
+	/* Re-set ADC readings and counter */
+	batpropsx->adc_val_old = batpropsx->i_adc_val;
 	batpropsx->i_adc_val = 0;
 	batpropsx->v_adc_val = 0;
 
@@ -180,13 +180,55 @@ status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
  * 		Battery status
  */
 status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
+{
+	uint32_t u32_adc_val = 0; // this will be set to i or v depending on mode (CC/CV)
+	uint32_t u32_adc_stpt = 0; // this will be set to i or v depending on mode (CC/CV)
+	status bat_stat = OK;
 
 	batpropsx->i_adc_val = batpropsx->i_adc_val / counter; // Average current reading
 	batpropsx->v_adc_val = batpropsx->v_adc_val / counter; // Average voltage reading
 
+	/* Determine charging mode */
+	if(batpropsx->v_adc_val >= (uint32_t)CV_ADC_VAL)
+	{
+		bat_stat = CV;
+		u32_adc_val = batpropsx->v_adc_val;
+		u32_adc_stpt = (uint32_t)CV_ADC_VAL;
+	}
+	else
+	{
+		bat_stat = CC;
+		u32_adc_val = batpropsx->i_adc_val;
+		u32_adc_stpt = batpropsx->ic_adc_stpt;
+	}
+
 	/* Determine appropriate pwm value for the charge FET on DC-DC converter */
-	batpropsx->pwm_chg_stpt = pi_ctrl(batpropsx->ic_adc_stpt, batpropsx->pwm_chg_stpt,\
-				batpropsx->i_adc_val, batpropsx->i_adc_val_old);
+	batpropsx->pwm_chg_stpt = pi_ctrl(u32_adc_stpt, batpropsx->pwm_chg_stpt,\
+				u32_adc_val, batpropsx->adc_val_old);
+
+	/* Check for full battery, else set converter PWM */
+	if(bat_stat == CV && batpropsx->i_adc_val <= (uint32_t)FULL_ADC_VAL)
+	{
+		batpropsx->pwm_chg_stpt = 0;
+		HAL_GPIO_WritePin(batteryx.chg_port, batteryx.chg_pin, GPIO_PIN_RESET); // Turn off chg pin
+		pwm_Set(batteryx.pwm_tims.conv_timer, batteryx.conv_chg_pin, 1600); // Turn off converter
+		bat_stat = FULL;
+	}
+	else
+	{
+		pwm_sine_Start(htim1, batteryx.conv_chg_pin, \
+				batpropsx->pwm_chg_stpt, (uint8_t)SINE);
+		/* Verify Charging on/off pin is set to ON */
+		HAL_GPIO_WritePin(batteryx.chg_port, batteryx.chg_pin, GPIO_PIN_SET);
+	}
+
+	/* Re-set ADC readings and counter */
+	batpropsx->adc_val_old = u32_adc_val;
+	batpropsx->i_adc_val = 0;
+	batpropsx->v_adc_val = 0;
+
+	return bat_stat;
+}
 
 /* dchg_ctrl
  * Description: Control the discharge of a battery at a constant current. Disconnect the battery if

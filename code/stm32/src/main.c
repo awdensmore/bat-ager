@@ -3,40 +3,10 @@
   * File Name          : main.c
   * Description        : Main program body
   ******************************************************************************
-  *
-  * COPYRIGHT(c) 2016 STMicroelectronics
-  *
-  * Redistribution and use in source and binary forms, with or without modification,
-  * are permitted provided that the following conditions are met:
-  *   1. Redistributions of source code must retain the above copyright notice,
-  *      this list of conditions and the following disclaimer.
-  *   2. Redistributions in binary form must reproduce the above copyright notice,
-  *      this list of conditions and the following disclaimer in the documentation
-  *      and/or other materials provided with the distribution.
-  *   3. Neither the name of STMicroelectronics nor the names of its contributors
-  *      may be used to endorse or promote products derived from this software
-  *      without specific prior written permission.
-  *
-  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  *
-  ******************************************************************************
   */
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_hal.h"
 #include "user_funcs.h"
-
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 
@@ -49,11 +19,6 @@ DMA_HandleTypeDef hdma_tim1_ch4_trig_com;
 
 UART_HandleTypeDef huart2;
 
-/* USER CODE BEGIN PV */
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE END PV */
-
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
@@ -65,22 +30,8 @@ static void MX_TIM16_Init(void);
 static void MX_TIM17_Init(void);
 static void MX_USART2_UART_Init(void);
 
-/* USER CODE BEGIN PFP */
-/* Private function prototypes -----------------------------------------------*/
-
-/* USER CODE END PFP */
-
-/* USER CODE BEGIN 0 */
-
-/* USER CODE END 0 */
-
 int main(void)
 {
-
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
   /* MCU Configuration----------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -100,16 +51,30 @@ int main(void)
   MX_USART2_UART_Init();
 
   /* Define battery pins */
-  batpins battery1 = {ADC_CHANNEL_0, ADC_CHANNEL_1, chg_onoff_1_Pin, TIM_CHANNEL_3, \
-  					TIM_CHANNEL_1, TIM_CHANNEL_2, {htim1, htim3}};
+  pwm_timers b1_tims;
+  b1_tims.conv_timer = htim1;
+  b1_tims.dchg_timer = htim3;
+
+  batpins battery1;
+  battery1.v_adc_chan = ADC_CHANNEL_0;
+  battery1.i_adc_chan = ADC_CHANNEL_1;
+  battery1.chg_port = chg_onoff_1_GPIO_Port;
+  battery1.chg_pin = chg_onoff_1_Pin;
+  battery1.dchg_pin = TIM_CHANNEL_3;
+  battery1.conv_chg_pin = TIM_CHANNEL_1;
+  battery1.conv_dchg_pin = TIM_CHANNEL_2;
+  battery1.pwm_tims = b1_tims;
 
   /* Initialize battery properties: set points and initial ADC readings */
   /* Battery 1 */
   batprops props_bat1;
   props_bat1.i_adc_val = 0;
-  props_bat1.i_adc_val_old = adc_read(battery1.i_adc_chan);
-  props_bat1.id_adc_stpt = 200 + props_bat1.i_adc_val_old;
-  props_bat1.v_adc_stpt = 1000; // Not sure what this should be.
+  props_bat1.v_adc_val = 0;
+  props_bat1.adc_val_old = adc_read(battery1.i_adc_chan);
+  props_bat1.id_adc_stpt = 200 + props_bat1.adc_val_old;
+  props_bat1.ic_adc_stpt = 20 + props_bat1.adc_val_old;
+  //props_bat1.v_adc_stpt = 1000; // Not sure what this should be.
+  props_bat1.pwm_chg_stpt = 1600; // 1600 is off I think?
   props_bat1.pwm_dchg_stpt = 720; // Initialize near where discharge FET turns on
 
   /* Initialize pins to 0 */
@@ -118,26 +83,54 @@ int main(void)
   HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_RESET); // Charging on/off
 
   /* Initialize Converter output */
-  uint32_t dc_pwm = 1200;
-  uint32_t sine = 5;
+  //uint32_t dc_pwm = 1200;
+  //uint32_t sine = 5;
   //pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
-  HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_SET); // Charging On
-  pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_chg_pin, dc_pwm, sine); // Buck (charge)
+  //HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_SET); // Charging On
+  //pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_chg_pin, dc_pwm, sine); // Buck (charge)
 
   /* Initialize global variables */
   TimeCounter = 0;
   pi_j = 0;
   uint32_t i = 0;
-  uint32_t u32_pwm_stpt = 720;
+  uint32_t yo = 0;
+  //uint32_t u32_pwm_stpt = 720;
   status bat_stat = OK;
 
-  pwm_Set(battery1.pwm_tims.dchg_timer, battery1.dchg_pin, u32_pwm_stpt);
+  //pwm_Set(battery1.pwm_tims.dchg_timer, battery1.dchg_pin, u32_pwm_stpt);
+/*  while (1)
+  {
+	  yo = adc_read(battery1.i_adc_chan);
+  }*/
 
   while (1)
   {
 	  if(TimeCounter>=2*1600) // 4ms, ie 2 periods of 500Hz sine wave
 	  {
-		  bat_stat = dchg_ctrl(battery1, &props_bat1, i);
+		  switch(bat_stat) {
+		  case DISCHARGE:
+			  bat_stat = dchg_ctrl(battery1, &props_bat1, i);
+			  break;
+		  case CC:
+			  bat_stat = chg_ctrl(battery1, &props_bat1, i);
+			  break;
+		  case CV:
+			  bat_stat = chg_ctrl(battery1, &props_bat1, i);
+			  break;
+		  case FULL:
+			  // implement a timer here so battery rests for ~1hr
+			  break;
+		  case LVDC:
+		  	  // implement a timer here so battery rests for ~1hr
+			  break;
+		  case OK:
+			  bat_stat = CC;
+			  // what to do here?
+			  break;
+		  default:
+			  bat_stat = DISCHARGE;
+			  break;
+		  }
 		  TimeCounter = 0;
 		  i = 0;
 	  }

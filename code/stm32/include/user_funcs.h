@@ -54,6 +54,9 @@ DMA_HandleTypeDef hdma_tim3_ch1_trig;
 #define ADC_OVERCURRENT 4095 // Over-current shutdown if ADC reads above this value
 #define OC_TRIP_EVENTS 5 // allowable over-current events before shutdown
 #define LVDC_ADC_VAL 2719 // ADC reading below which disconnect load from battery
+#define CV_ADC_VAL 3000 // THIS IS A GUESS!!! Switch to CV charging when voltage is >= to this.
+#define FULL_ADC_VAL 20 // Below this current ADC value, battery is fully charged.
+#define SINE 5 // % Amplitude of sine wave, scale of [0 - 1000]
 
 /* Global variables */
 volatile int32_t pi_j; // integral timer value for PI control loop
@@ -86,6 +89,7 @@ typedef struct pwm_timers {
 typedef struct batpins {
 	uint32_t v_adc_chan;    // the ADC channel measuring the battery voltage (ie ADC_CHANNEL_1)
 	uint32_t i_adc_chan;    // the ADC channel measuring the battery current
+	GPIO_TypeDef* chg_port;		// The GPIO port for the on/off PFET
 	uint32_t chg_pin;       // the GPIO for the on/off PFET on the power distribution PCB
 	uint32_t dchg_pin;      // the PWM pin for the discharge control pin on the power distribution PCB
 	uint32_t conv_chg_pin;  // the PWM pin for the buck FET on the DC-DC converter
@@ -95,11 +99,11 @@ typedef struct batpins {
 typedef struct batprops {
 	uint32_t ic_adc_stpt; // current set point during charging
 	uint32_t id_adc_stpt; // current set point during discharge
-	uint32_t v_adc_stpt; // maximum battery voltage
+	//uint32_t v_adc_stpt; // maximum battery voltage
 	uint32_t pwm_chg_stpt; // pwm set point for charging FET on DC-DC converter
 	uint32_t pwm_dchg_stpt;
 	uint32_t i_adc_val;
-	uint32_t i_adc_val_old;
+	uint32_t adc_val_old;
 	uint32_t v_adc_val;
 }batprops;
 
@@ -129,4 +133,5 @@ uint32_t adc_read(uint32_t u32_adc_chan);
 uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, uint32_t u32_adc_val_old);
 uint8_t oc_check(int32_t i32_pwm_val, uint8_t u8_oc_trip);
 status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter);
-status dchg_ctrl2(batpins batteryx, uint32_t u32_lvdc, uint32_t u32_istpt, int32_t* pi32_pwm_val);
+status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter);
+//status dchg_ctrl2(batpins batteryx, uint32_t u32_lvdc, uint32_t u32_istpt, int32_t* pi32_pwm_val);
