@@ -72,9 +72,9 @@ int main(void)
   props_bat1.v_adc_val = 0;
   props_bat1.adc_val_old = adc_read(battery1.i_adc_chan);
   props_bat1.id_adc_stpt = 200 + props_bat1.adc_val_old;
-  props_bat1.ic_adc_stpt = 20 + props_bat1.adc_val_old;
+  props_bat1.ic_adc_stpt = props_bat1.adc_val_old - 800;
   //props_bat1.v_adc_stpt = 1000; // Not sure what this should be.
-  props_bat1.pwm_chg_stpt = 1600; // 1600 is off I think?
+  props_bat1.pwm_chg_stpt = 0; // 1600 is off I think?
   props_bat1.pwm_dchg_stpt = 720; // Initialize near where discharge FET turns on
 
   /* Initialize pins to 0 */
@@ -93,15 +93,9 @@ int main(void)
   TimeCounter = 0;
   pi_j = 0;
   uint32_t i = 0;
-  uint32_t yo = 0;
-  //uint32_t u32_pwm_stpt = 720;
+  uint32_t voltage = 0;
+  uint32_t current = 720;
   status bat_stat = OK;
-
-  //pwm_Set(battery1.pwm_tims.dchg_timer, battery1.dchg_pin, u32_pwm_stpt);
-/*  while (1)
-  {
-	  yo = adc_read(battery1.i_adc_chan);
-  }*/
 
   while (1)
   {
@@ -124,6 +118,8 @@ int main(void)
 		  	  // implement a timer here so battery rests for ~1hr
 			  break;
 		  case OK:
+			  props_bat1.i_adc_val = 0; // normally reset in d/chg func, but not used so reset here
+			  props_bat1.v_adc_val = 0; // normally reset in d/chg func, but not used so reset here
 			  bat_stat = CC;
 			  // what to do here?
 			  break;
@@ -142,8 +138,10 @@ int main(void)
 		      HAL_Delay(200);
 		  }
 	  }
-	  props_bat1.i_adc_val += adc_read(battery1.i_adc_chan);
-	  props_bat1.v_adc_val += adc_read(battery1.v_adc_chan);
+	  current = adc_read(battery1.i_adc_chan);
+	  voltage = adc_read(battery1.v_adc_chan);
+	  props_bat1.i_adc_val = props_bat1.i_adc_val + current;
+	  props_bat1.v_adc_val = props_bat1.v_adc_val + voltage;
 	  i++;
 	  HAL_SYSTICK_IRQHandler();
   }

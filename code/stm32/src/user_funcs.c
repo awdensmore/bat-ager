@@ -66,7 +66,7 @@ void pwm_Set(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_cy
  * 		   u32_duty_cycle - the DC duty cycle on which the sine wave will be added. [0 - htimx.Init.Period]
  * 		   NOTE: the duty cycle scale for this function is different from pwm_Start.
  */
-void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_dc_duty_cycle, uint8_t u8_ampl)
+void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_dc_duty_cycle, uint16_t u16_ampl)
 {
 	int32_t i32_pwm_ampl[SINE_RES_500HZ] = {0}; // amplitude of the sine wave expressed as a % of the pwm period
 	//uint32_t u32_pwm_duty_cycle[SINE_RESOLUTION] = {0}; // duty cycle expressed as [0 - htimx.Init.Period]
@@ -75,7 +75,7 @@ void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_
 
 	for(uint8_t i=0; i<(uint8_t)SINE_RES_500HZ; i++)
 	{
-		i32_pwm_ampl[i] = ((int32_t)i16_sine500hz_lookup[i] * (int32_t)u8_ampl * i32_max_period) / (1000 * 1000);
+		i32_pwm_ampl[i] = ((int32_t)i16_sine500hz_lookup[i] * (int32_t)u16_ampl * i32_max_period) / (1000 * 1000);
 		dc_check[i] = (int32_t)u32_dc_duty_cycle + i32_pwm_ampl[i];
 		u32_sine_duty_cycle[i] = (uint32_t)max(min(i32_max_period, dc_check[i]), 0);
 	}
@@ -193,21 +193,24 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	{
 		bat_stat = CV;
 		u32_adc_val = batpropsx->v_adc_val;
-		u32_adc_stpt = (uint32_t)CV_ADC_VAL;
+		u32_adc_stpt = (uint32_t)CV_ADC_VAL+100; // added buffer to prevent bouncing b/w CC & CV
 	}
 	else
 	{
 		bat_stat = CC;
-		u32_adc_val = batpropsx->i_adc_val;
-		u32_adc_stpt = batpropsx->ic_adc_stpt;
+		/* In cc chg mode, lower ADC val = greater current. Therefore adc_val & adc_stpt
+		 * inputs to pi_ctrl() are reversed. */
+		u32_adc_val = batpropsx->ic_adc_stpt;
+		u32_adc_stpt = batpropsx->i_adc_val;
 	}
 
 	/* Determine appropriate pwm value for the charge FET on DC-DC converter */
+
 	batpropsx->pwm_chg_stpt = pi_ctrl(u32_adc_stpt, batpropsx->pwm_chg_stpt,\
 				u32_adc_val, batpropsx->adc_val_old);
 
 	/* Check for full battery, else set converter PWM */
-	if(bat_stat == CV && batpropsx->i_adc_val <= (uint32_t)FULL_ADC_VAL)
+	if(bat_stat == CV && batpropsx->i_adc_val >= (uint32_t)FULL_ADC_VAL)
 	{
 		batpropsx->pwm_chg_stpt = 0;
 		HAL_GPIO_WritePin(batteryx.chg_port, batteryx.chg_pin, GPIO_PIN_RESET); // Turn off chg pin
@@ -217,7 +220,7 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	else
 	{
 		pwm_sine_Start(htim1, batteryx.conv_chg_pin, \
-				batpropsx->pwm_chg_stpt, (uint8_t)SINE);
+				batpropsx->pwm_chg_stpt, (uint16_t)SINE);
 		/* Verify Charging on/off pin is set to ON */
 		HAL_GPIO_WritePin(batteryx.chg_port, batteryx.chg_pin, GPIO_PIN_SET);
 	}

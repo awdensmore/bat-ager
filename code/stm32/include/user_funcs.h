@@ -54,9 +54,11 @@ DMA_HandleTypeDef hdma_tim3_ch1_trig;
 #define ADC_OVERCURRENT 4095 // Over-current shutdown if ADC reads above this value
 #define OC_TRIP_EVENTS 5 // allowable over-current events before shutdown
 #define LVDC_ADC_VAL 2719 // ADC reading below which disconnect load from battery
-#define CV_ADC_VAL 3000 // THIS IS A GUESS!!! Switch to CV charging when voltage is >= to this.
-#define FULL_ADC_VAL 20 // Below this current ADC value, battery is fully charged.
-#define SINE 5 // % Amplitude of sine wave, scale of [0 - 1000]
+#define CV_ADC_VAL 3500 // THIS IS A GUESS!!! Switch to CV charging when voltage is >= to this.
+#define FULL_ADC_DIFF 20 // Below this current ADC value, battery is fully charged.
+#define I_ADC_MIDPOINT 2110// ADC reading at which current = 0A
+#define FULL_ADC_VAL (I_ADC_MIDPOINT - FULL_ADC_DIFF)
+#define SINE 100 // % Amplitude of sine wave, scale of [0 - 1000]
 
 /* Global variables */
 volatile int32_t pi_j; // integral timer value for PI control loop
@@ -128,7 +130,7 @@ static const int16_t i16_sine500hz_lookup[SINE_RES_500HZ] =
 
 void HAL_SYSTICK_IRQHandler(void);
 void pwm_Set(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_cycle);
-void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_dc_duty_cycle, uint8_t u8_ampl);
+void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_dc_duty_cycle, uint16_t u8_ampl);
 uint32_t adc_read(uint32_t u32_adc_chan);
 uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, uint32_t u32_adc_val_old);
 uint8_t oc_check(int32_t i32_pwm_val, uint8_t u8_oc_trip);
