@@ -72,18 +72,18 @@ int main(void)
   props_bat1.v_adc_val = 0;
   props_bat1.adc_val_old = adc_read(battery1.i_adc_chan);
   props_bat1.id_adc_stpt = 200 + props_bat1.adc_val_old;
-  props_bat1.ic_adc_stpt = props_bat1.adc_val_old - 800;
+  props_bat1.ic_adc_stpt = props_bat1.adc_val_old - 750;
   //props_bat1.v_adc_stpt = 1000; // Not sure what this should be.
   props_bat1.pwm_chg_stpt = 0; // 1600 is off I think?
   props_bat1.pwm_dchg_stpt = 720; // Initialize near where discharge FET turns on
 
   /* Initialize pins to 0 */
-  pwm_Set(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin, 1600); // PWM control
+  pwm_Set(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin, 0); // PWM control
   pwm_Set(battery1.pwm_tims.dchg_timer, battery1.dchg_pin, 0); // Discharge control
   HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_RESET); // Charging on/off
 
   /* Initialize Converter output */
-  //uint32_t dc_pwm = 1200;
+  //uint32_t dc_pwm = 1400;
   //uint32_t sine = 5;
   //pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
   //HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_SET); // Charging On
@@ -121,6 +121,7 @@ int main(void)
 			  props_bat1.i_adc_val = 0; // normally reset in d/chg func, but not used so reset here
 			  props_bat1.v_adc_val = 0; // normally reset in d/chg func, but not used so reset here
 			  bat_stat = CC;
+			  //props_bat1.pwm_chg_stpt = 1300;
 			  // what to do here?
 			  break;
 		  default:

@@ -122,13 +122,13 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, uint
 	   {
 		   p = -(diff / 20);
 		   pi_j++;
-		   pwm_val_new += min((p+pi_j*(1+4*(p/2))), 1000); // slow increase
+		   pwm_val_new += min((p+pi_j*(1+4*(p/2))), 20); // slow increase. 4,1000
 	   }
 	   else // ADC reading is above set point
 	   {
 		   p = -(diff / 20);
 		   pi_j++;
-		   pwm_val_new += min((p-pi_j*(1-30*(p/2))), 1000); // fast decrease for safety
+		   pwm_val_new += max((p-pi_j*(1-4*(p/2))), -20); // fast decrease for safety.30,1000
 	   }
    }
    else
@@ -206,15 +206,15 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 
 	/* Determine appropriate pwm value for the charge FET on DC-DC converter */
 
-	batpropsx->pwm_chg_stpt = pi_ctrl(u32_adc_stpt, batpropsx->pwm_chg_stpt,\
-				u32_adc_val, batpropsx->adc_val_old);
+	batpropsx->pwm_chg_stpt = max(1050, pi_ctrl(u32_adc_stpt, batpropsx->pwm_chg_stpt,\
+				u32_adc_val, batpropsx->adc_val_old));
 
 	/* Check for full battery, else set converter PWM */
 	if(bat_stat == CV && batpropsx->i_adc_val >= (uint32_t)FULL_ADC_VAL)
 	{
 		batpropsx->pwm_chg_stpt = 0;
 		HAL_GPIO_WritePin(batteryx.chg_port, batteryx.chg_pin, GPIO_PIN_RESET); // Turn off chg pin
-		pwm_Set(batteryx.pwm_tims.conv_timer, batteryx.conv_chg_pin, 1600); // Turn off converter
+		pwm_Set(batteryx.pwm_tims.conv_timer, batteryx.conv_chg_pin, 0); // Turn off converter
 		bat_stat = FULL;
 	}
 	else

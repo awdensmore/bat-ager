@@ -56,9 +56,9 @@ DMA_HandleTypeDef hdma_tim3_ch1_trig;
 #define LVDC_ADC_VAL 2719 // ADC reading below which disconnect load from battery
 #define CV_ADC_VAL 3500 // THIS IS A GUESS!!! Switch to CV charging when voltage is >= to this.
 #define FULL_ADC_DIFF 20 // Below this current ADC value, battery is fully charged.
-#define I_ADC_MIDPOINT 2110// ADC reading at which current = 0A
+#define I_ADC_MIDPOINT 2182// ADC reading at which current = 0A
 #define FULL_ADC_VAL (I_ADC_MIDPOINT - FULL_ADC_DIFF)
-#define SINE 100 // % Amplitude of sine wave, scale of [0 - 1000]
+#define SINE 0 // % Amplitude of sine wave, scale of [0 - 1000]
 
 /* Global variables */
 volatile int32_t pi_j; // integral timer value for PI control loop
