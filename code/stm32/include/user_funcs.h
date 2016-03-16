@@ -54,11 +54,16 @@ DMA_HandleTypeDef hdma_tim3_ch1_trig;
 #define ADC_OVERCURRENT 4095 // Over-current shutdown if ADC reads above this value
 #define OC_TRIP_EVENTS 5 // allowable over-current events before shutdown
 #define LVDC_ADC_VAL 2719 // ADC reading below which disconnect load from battery
-#define CV_ADC_VAL 3500 // THIS IS A GUESS!!! Switch to CV charging when voltage is >= to this.
-#define FULL_ADC_DIFF 20 // Below this current ADC value, battery is fully charged.
-#define I_ADC_MIDPOINT 2182// ADC reading at which current = 0A
+#define CV_ADC_VAL 3400 // THIS IS A GUESS!!! Switch to CV charging when voltage is >= to this.
+#define FULL_ADC_DIFF 310 // Below this current ADC value, battery is fully charged.
+#define I_ADC_MIDPOINT 2042// ADC reading at which current = 0A
 #define FULL_ADC_VAL (I_ADC_MIDPOINT - FULL_ADC_DIFF)
-#define SINE 0 // % Amplitude of sine wave, scale of [0 - 1000]
+#define SINE 20 // % Amplitude of sine wave, scale of [0 - 1000]
+#define REST 30*60*1000 // 30 minutes rest between charge/discharge cycles
+#define CHARGING_ON HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_SET)
+#define CHARGING_OFF HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_RESET)
+#define DISCHARGE_OFF pwm_Set(battery1.pwm_tims.dchg_timer, battery1.dchg_pin, 0)
+//#define sine(x) (x / )
 
 /* Global variables */
 volatile int32_t pi_j; // integral timer value for PI control loop
@@ -101,9 +106,9 @@ typedef struct batpins {
 typedef struct batprops {
 	uint32_t ic_adc_stpt; // current set point during charging
 	uint32_t id_adc_stpt; // current set point during discharge
-	//uint32_t v_adc_stpt; // maximum battery voltage
+	uint32_t conv_bst_stpt; // pwm set point for boost (discharging) FET on DC-DC converter
 	uint32_t pwm_chg_stpt; // pwm set point for charging FET on DC-DC converter
-	uint32_t pwm_dchg_stpt;
+	uint32_t pwm_dchg_stpt; // pwm set point for the load FET on distribution board
 	uint32_t i_adc_val;
 	uint32_t adc_val_old;
 	uint32_t v_adc_val;

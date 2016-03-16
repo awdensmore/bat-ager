@@ -193,7 +193,7 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	{
 		bat_stat = CV;
 		u32_adc_val = batpropsx->v_adc_val;
-		u32_adc_stpt = (uint32_t)CV_ADC_VAL+100; // added buffer to prevent bouncing b/w CC & CV
+		u32_adc_stpt = (uint32_t)CV_ADC_VAL+10; // added buffer to prevent bouncing b/w CC & CV
 	}
 	else
 	{
@@ -213,7 +213,7 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	if(bat_stat == CV && batpropsx->i_adc_val >= (uint32_t)FULL_ADC_VAL)
 	{
 		batpropsx->pwm_chg_stpt = 0;
-		HAL_GPIO_WritePin(batteryx.chg_port, batteryx.chg_pin, GPIO_PIN_RESET); // Turn off chg pin
+		CHARGING_OFF;
 		pwm_Set(batteryx.pwm_tims.conv_timer, batteryx.conv_chg_pin, 0); // Turn off converter
 		bat_stat = FULL;
 	}
@@ -221,8 +221,7 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	{
 		pwm_sine_Start(htim1, batteryx.conv_chg_pin, \
 				batpropsx->pwm_chg_stpt, (uint16_t)SINE);
-		/* Verify Charging on/off pin is set to ON */
-		HAL_GPIO_WritePin(batteryx.chg_port, batteryx.chg_pin, GPIO_PIN_SET);
+		CHARGING_ON;
 	}
 
 	/* Re-set ADC readings and counter */
