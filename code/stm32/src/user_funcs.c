@@ -150,8 +150,8 @@ status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	batpropsx->v_adc_val = batpropsx->v_adc_val / counter; // Average voltage reading
 
 	/* Determine appropriate pwm value for the discharge FET */
-	batpropsx->pwm_dchg_stpt = pi_ctrl(batpropsx->id_adc_stpt, batpropsx->pwm_dchg_stpt,\
-			batpropsx->i_adc_val, batpropsx->adc_val_old);
+	batpropsx->pwm_dchg_stpt = max(720,pi_ctrl(batpropsx->id_adc_stpt, batpropsx->pwm_dchg_stpt,\
+			batpropsx->i_adc_val, batpropsx->adc_val_old));
 
 	/* Check for low voltage disconnect */
 	if(batpropsx->v_adc_val < (uint32_t)LVDC_ADC_VAL)
