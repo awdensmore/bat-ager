@@ -85,11 +85,15 @@ int main(void)
   CHARGING_OFF; // Charging on/off
 
   /* Initialize Converter output */
-  uint32_t dc_pwm = 1400;
-  uint32_t sine = 5;
+  //uint32_t dc_pwm = 1400;
+  //uint32_t sine = 5;
+  //pwm_Set(htim1, TIM_CHANNEL_2, 99);
+  //CHARGING_OFF;
+  //CHARGING_ON;
+
   //pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
   //HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_SET); // Charging On
-  pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_chg_pin, dc_pwm, sine); // Buck (charge)
+  //pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_chg_pin, dc_pwm, sine); // Buck (charge)
 
   /* Initialize global variables */
   TimeCounter = 0;
@@ -101,6 +105,7 @@ int main(void)
 
   while (1)
   {
+
 	  if(TimeCounter>=2*1600) // 4ms, ie 2 periods of 500Hz sine wave
 	  {
 		  switch(bat_stat) {
@@ -110,11 +115,11 @@ int main(void)
 			  pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin,\
 					  props_bat1.conv_bst_stpt, SINE);
 			  bat_stat = dchg_ctrl(battery1, &props_bat1, i);
+			  bat_stat = LVDC;
 			  break;
 		  case CC:
 			  DISCHARGE_OFF;
 			  CONV_DCHG_OFF;
-			  pwm_Set(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin, 0);
 			  bat_stat = chg_ctrl(battery1, &props_bat1, i);
 			  break;
 		  case CV:

@@ -68,6 +68,7 @@ void pwm_Set(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_cy
  */
 void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_dc_duty_cycle, uint16_t u16_ampl)
 {
+	//u32_sine_duty_cycle = {0};
 	int32_t i32_pwm_ampl[SINE_RES_500HZ] = {0}; // amplitude of the sine wave expressed as a % of the pwm period
 	//uint32_t u32_pwm_duty_cycle[SINE_RESOLUTION] = {0}; // duty cycle expressed as [0 - htimx.Init.Period]
 	int32_t dc_check[SINE_RES_500HZ] = {0};
@@ -157,6 +158,7 @@ status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	if(batpropsx->v_adc_val < (uint32_t)LVDC_ADC_VAL)
 	{
 		batpropsx->pwm_dchg_stpt = 0;
+		HAL_TIM_PWM_Stop_DMA(&batteryx.pwm_tims.conv_timer, batteryx.conv_dchg_pin); // once DMA is used, only DMA can be used (at least this is all that works)
 		bat_stat = LVDC;
 	}
 
@@ -214,12 +216,12 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	{
 		batpropsx->pwm_chg_stpt = 0;
 		CHARGING_OFF;
-		pwm_Set(batteryx.pwm_tims.conv_timer, batteryx.conv_chg_pin, 0); // Turn off converter
+		HAL_TIM_PWM_Stop_DMA(&batteryx.pwm_tims.conv_timer, batteryx.conv_chg_pin); // Turn off converter
 		bat_stat = FULL;
 	}
 	else
 	{
-		pwm_sine_Start(htim1, batteryx.conv_chg_pin, \
+		pwm_sine_Start(batteryx.pwm_tims.conv_timer, batteryx.conv_chg_pin, \
 				batpropsx->pwm_chg_stpt, (uint16_t)SINE);
 		CHARGING_ON;
 	}

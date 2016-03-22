@@ -59,7 +59,7 @@ DMA_HandleTypeDef hdma_tim3_ch1_trig;
 #define I_ADC_MIDPOINT 2042// ADC reading at which current = 0A
 #define FULL_ADC_VAL (I_ADC_MIDPOINT - FULL_ADC_DIFF)
 #define SINE 20 // % Amplitude of sine wave, scale of [0 - 1000]
-#define REST (uint32_t)1*20*1000 // 30 minutes rest between charge/discharge cycles
+#define REST (uint32_t)1*1*1000 // 30 minutes rest between charge/discharge cycles
 #define CHARGING_ON  HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_SET)
 #define CHARGING_OFF HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_RESET)
 #define DISCHARGE_OFF pwm_Set(battery1.pwm_tims.dchg_timer, battery1.dchg_pin, 0)
