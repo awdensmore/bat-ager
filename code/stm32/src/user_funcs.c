@@ -215,7 +215,7 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	if(bat_stat == CV && batpropsx->i_adc_val >= (uint32_t)FULL_ADC_VAL)
 	{
 		batpropsx->pwm_chg_stpt = 0;
-		CHARGING_OFF;
+		HAL_GPIO_WritePin(batteryx.chg_port, batteryx.chg_pin, GPIO_PIN_RESET); // Charging off
 		HAL_TIM_PWM_Stop_DMA(&batteryx.pwm_tims.conv_timer, batteryx.conv_chg_pin); // Turn off converter
 		bat_stat = FULL;
 	}
@@ -223,7 +223,7 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	{
 		pwm_sine_Start(batteryx.pwm_tims.conv_timer, batteryx.conv_chg_pin, \
 				batpropsx->pwm_chg_stpt, (uint16_t)SINE);
-		CHARGING_ON;
+		HAL_GPIO_WritePin(batteryx.chg_port, batteryx.chg_pin, GPIO_PIN_SET); // Charging on
 	}
 
 	/* Re-set ADC readings and counter */

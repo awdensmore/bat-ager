@@ -53,14 +53,14 @@ DMA_HandleTypeDef hdma_tim3_ch1_trig;
 #define SINE_RES_500HZ 60
 #define ADC_OVERCURRENT 4095 // Over-current shutdown if ADC reads above this value
 #define OC_TRIP_EVENTS 5 // allowable over-current events before shutdown
-#define LVDC_ADC_VAL 3220 // ADC reading below which disconnect load from battery.2719
+#define LVDC_ADC_VAL 2719 // ADC reading below which disconnect load from battery.2719
 #define CV_ADC_VAL 3360 // THIS IS A GUESS!!! Switch to CV charging when voltage is >= to this.
-#define FULL_ADC_DIFF 380 // Below this current ADC value, battery is fully charged.
-#define I_ADC_MIDPOINT 2042// ADC reading at which current = 0A
+#define FULL_ADC_DIFF 30 // Below this current ADC value, battery is fully charged.
+#define I_ADC_MIDPOINT 2035// ADC reading at which current = 0A
 #define FULL_ADC_VAL (I_ADC_MIDPOINT - FULL_ADC_DIFF)
-#define SINE 20 // % Amplitude of sine wave, scale of [0 - 1000]
+#define SINE 10 // % Amplitude of sine wave, scale of [0 - 1000]
 #define REST (uint32_t)1*1*1000 // 30 minutes rest between charge/discharge cycles
-#define CHARGING_ON  HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_SET)
+//#define CHARGING_ON  HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_SET)
 #define CHARGING_OFF HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_RESET)
 #define DISCHARGE_OFF pwm_Set(battery1.pwm_tims.dchg_timer, battery1.dchg_pin, 0)
 #define CONV_CHG_OFF  pwm_Set(battery1.pwm_tims.conv_timer, battery1.conv_chg_pin, 0)

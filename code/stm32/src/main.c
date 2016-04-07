@@ -71,28 +71,30 @@ int main(void)
   props_bat1.i_adc_val = 0;
   props_bat1.v_adc_val = 0;
   props_bat1.adc_val_old = adc_read(battery1.i_adc_chan);
-  props_bat1.id_adc_stpt = 300 + props_bat1.adc_val_old;
+  props_bat1.id_adc_stpt = 600 + props_bat1.adc_val_old;
   props_bat1.ic_adc_stpt = props_bat1.adc_val_old - 750;
   //props_bat1.v_adc_stpt = 1000; // Not sure what this should be.
-  props_bat1.conv_bst_stpt = 400; // Need to calibrate this to boost to desired voltage
-  props_bat1.pwm_chg_stpt = 0;
+  props_bat1.conv_bst_stpt = 300; // Need to calibrate this to boost to desired voltage
+  props_bat1.pwm_chg_stpt = 0; 	  // Initialized to 0. Program will change as needed.
   props_bat1.pwm_dchg_stpt = 720; // Initialize near where discharge FET turns on
 
   /* Initialize pins to 0 */
-  CONV_CHG_OFF;
-  CONV_DCHG_OFF; // PWM control
+  HAL_TIM_PWM_Stop_DMA(&battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin);
+  HAL_TIM_PWM_Stop_DMA(&battery1.pwm_tims.conv_timer, battery1.conv_chg_pin);
+  //CONV_DCHG_OFF; // PWM control
   DISCHARGE_OFF; // Discharge control
   CHARGING_OFF; // Charging on/off
 
   /* Initialize Converter output */
-  uint32_t dc_pwm = 1400;
-  uint32_t sine = 5;
+  //uint32_t dc_pwm = 400;
+  //uint32_t sine = 5;
   //pwm_Set(htim1, TIM_CHANNEL_2, 99);
   //CHARGING_OFF;
   //CHARGING_ON;
 
-  pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
-  //HAL_GPIO_WritePin(GPIOC, chg_onoff_1_Pin, GPIO_PIN_SET); // Charging On
+  //pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
+  //pwm_Set(battery1.pwm_tims.dchg_timer, battery1.dchg_pin, 735);
+  //HAL_GPIO_WritePin(battery1.chg_port, battery1.chg_pin, GPIO_PIN_SET); // Charging On
   //pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_chg_pin, dc_pwm, sine); // Buck (charge)
 
   /* Initialize global variables */
@@ -110,20 +112,20 @@ int main(void)
 	  {
 		  switch(bat_stat) {
 		  case DISCHARGE:
-			  CHARGING_OFF;
-			  CONV_CHG_OFF;
+			  //CHARGING_OFF;
+			  //CONV_CHG_OFF;
 			  pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin,\
 					  props_bat1.conv_bst_stpt, SINE);
 			  bat_stat = dchg_ctrl(battery1, &props_bat1, i);
 			  break;
 		  case CC:
-			  DISCHARGE_OFF;
-			  CONV_DCHG_OFF;
+			  //DISCHARGE_OFF;
+			  //CONV_DCHG_OFF;
 			  bat_stat = chg_ctrl(battery1, &props_bat1, i);
 			  break;
 		  case CV:
-			  DISCHARGE_OFF;
-			  CONV_DCHG_OFF;
+			  //DISCHARGE_OFF;
+			  //CONV_DCHG_OFF;
 			  bat_stat = chg_ctrl(battery1, &props_bat1, i);
 			  break;
 		  case FULL:
@@ -166,6 +168,12 @@ int main(void)
 	  }*/
 	  current = adc_read(battery1.i_adc_chan);
 	  voltage = adc_read(battery1.v_adc_chan);
+	  if(current>3950 || current<100)
+	  {
+		  DISCHARGE_OFF;
+		  CHARGING_OFF;
+		  while(1){}
+	  }
 	  props_bat1.i_adc_val = props_bat1.i_adc_val + current;
 	  props_bat1.v_adc_val = props_bat1.v_adc_val + voltage;
 	  i++;
