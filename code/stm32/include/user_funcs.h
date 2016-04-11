@@ -139,7 +139,8 @@ void HAL_SYSTICK_IRQHandler(void);
 void pwm_Set(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_cycle);
 void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_dc_duty_cycle, uint16_t u8_ampl);
 uint32_t adc_read(uint32_t u32_adc_chan);
-uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, uint32_t u32_adc_val_old);
+uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, \
+		uint32_t u32_adc_val_old, status mode);
 uint8_t oc_check(int32_t i32_pwm_val, uint8_t u8_oc_trip);
 status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter);
 status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter);

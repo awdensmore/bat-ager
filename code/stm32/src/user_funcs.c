@@ -91,9 +91,11 @@ void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_
  * Inputs:  u32_stpt - the ADC set point to control to [0 - 4095]
  * 			int32_t pwm_val - previously set PWM value [0 - 1000]
  * 		    u32_adc_chan - the ADC channel to read from (ADC_CHANNEL_1, etc)
+ * 		    status - battery status. Can be CC, CV or DISCHARGE
  * Outputs: pwm_val - next PWM value
  */
-uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, uint32_t u32_adc_val_old)
+uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, \
+		uint32_t u32_adc_val_old, status mode)
 {
    int32_t p = 0;
    //int32_t i = 0; unused - probably can remove
@@ -104,6 +106,20 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, uint
    uint32_t err = 10;
    uint32_t mask = 1<<31;
    int32_t pwm_val_new = (int32_t)pwm_val;
+   int32_t p_gain = 0;
+   int32_t i_gain = 0;
+
+   /* Select PI gains based on charging or discharging modes */
+   if (mode == DISCHARGE)
+   {
+	   p_gain = 30;
+	   i_gain = 2;
+   }
+   else
+   {
+	   p_gain = 30;
+	   i_gain = 2;
+   }
 
    diff = (int32_t)u32_adc_val - (int32_t)u32_stpt;
    diff_old = (int32_t)u32_adc_val_old - (int32_t)u32_stpt;
@@ -121,15 +137,15 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, uint
    {
 	   if(sign) // ADC reading is below set point
 	   {
-		   p = -(diff / 20);
+		   p = -(diff / p_gain);
 		   pi_j++;
-		   pwm_val_new += min((p+pi_j*(1+4*(p/2))), 20); // slow increase. 4,1000
+		   pwm_val_new += min((p+pi_j*(1+i_gain*(p/2))), 20); // slow increase. 4,1000
 	   }
 	   else // ADC reading is above set point
 	   {
-		   p = -(diff / 20);
+		   p = -(diff / p_gain);
 		   pi_j++;
-		   pwm_val_new += max((p-pi_j*(1-4*(p/2))), -20); // fast decrease for safety.30,1000
+		   pwm_val_new += max((p-pi_j*(1-i_gain*(p/2))), -20); // fast decrease for safety.30,1000
 	   }
    }
    else
@@ -152,7 +168,7 @@ status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 
 	/* Determine appropriate pwm value for the discharge FET */
 	batpropsx->pwm_dchg_stpt = max(720,pi_ctrl(batpropsx->id_adc_stpt, batpropsx->pwm_dchg_stpt,\
-			batpropsx->i_adc_val, batpropsx->adc_val_old));
+			batpropsx->i_adc_val, batpropsx->adc_val_old, bat_stat));
 
 	/* Check for low voltage disconnect */
 	if(batpropsx->v_adc_val < (uint32_t)LVDC_ADC_VAL)
@@ -209,7 +225,7 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	/* Determine appropriate pwm value for the charge FET on DC-DC converter */
 
 	batpropsx->pwm_chg_stpt = max(1050, pi_ctrl(u32_adc_stpt, batpropsx->pwm_chg_stpt,\
-				u32_adc_val, batpropsx->adc_val_old));
+				u32_adc_val, batpropsx->adc_val_old, bat_stat));
 
 	/* Check for full battery, else set converter PWM */
 	if(bat_stat == CV && batpropsx->i_adc_val >= (uint32_t)FULL_ADC_VAL)

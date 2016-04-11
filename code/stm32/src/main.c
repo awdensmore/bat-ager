@@ -65,6 +65,20 @@ int main(void)
   battery1.conv_dchg_pin = TIM_CHANNEL_2;
   battery1.pwm_tims = b1_tims;
 
+  pwm_timers b2_tims;
+  b2_tims.conv_timer = htim1;
+  b2_tims.dchg_timer = htim3;
+
+  batpins battery2;
+  battery2.v_adc_chan = ADC_CHANNEL_13;
+  battery2.i_adc_chan = ADC_CHANNEL_6;
+  battery2.chg_port = chg_onoff_2_GPIO_Port;
+  battery2.chg_pin = chg_onoff_2_Pin;
+  battery2.dchg_pin = TIM_CHANNEL_4;
+  battery2.conv_chg_pin = TIM_CHANNEL_3;
+  battery2.conv_dchg_pin = TIM_CHANNEL_4;
+  battery2.pwm_tims = b2_tims;
+
   /* Initialize battery properties: set points and initial ADC readings */
   /* Battery 1 */
   batprops props_bat1;
@@ -81,21 +95,24 @@ int main(void)
   /* Initialize pins to 0 */
   HAL_TIM_PWM_Stop_DMA(&battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin);
   HAL_TIM_PWM_Stop_DMA(&battery1.pwm_tims.conv_timer, battery1.conv_chg_pin);
+  HAL_TIM_PWM_Stop_DMA(&htim1, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Stop_DMA(&htim1, TIM_CHANNEL_4);
   //CONV_DCHG_OFF; // PWM control
   DISCHARGE_OFF; // Discharge control
   CHARGING_OFF; // Charging on/off
 
   /* Initialize Converter output */
-  //uint32_t dc_pwm = 400;
-  //uint32_t sine = 5;
+  uint32_t dc_pwm = 1200;
+  uint32_t sine = 5;
   //pwm_Set(htim1, TIM_CHANNEL_2, 99);
   //CHARGING_OFF;
   //CHARGING_ON;
 
-  //pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
-  //pwm_Set(battery1.pwm_tims.dchg_timer, battery1.dchg_pin, 735);
-  //HAL_GPIO_WritePin(battery1.chg_port, battery1.chg_pin, GPIO_PIN_SET); // Charging On
-  //pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_chg_pin, dc_pwm, sine); // Buck (charge)
+  //pwm_sine_Start(battery2.pwm_tims.conv_timer, battery2.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
+  //pwm_Set(battery2.pwm_tims.dchg_timer, battery2.dchg_pin, 735);
+  //HAL_GPIO_WritePin(battery2.chg_port, battery2.chg_pin, GPIO_PIN_SET); // Charging On
+  pwm_sine_Start(battery2.pwm_tims.conv_timer, battery2.conv_chg_pin, dc_pwm, sine); // Buck (charge)
+  //HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
   /* Initialize global variables */
   TimeCounter = 0;
@@ -147,7 +164,7 @@ int main(void)
 		  case OK:
 			  props_bat1.i_adc_val = 0; // normally reset in d/chg func, but not used so reset here
 			  props_bat1.v_adc_val = 0; // normally reset in d/chg func, but not used so reset here
-			  bat_stat = DISCHARGE;
+			  bat_stat = CC;
 			  //props_bat1.pwm_chg_stpt = 1300;
 			  // what to do here?
 			  break;
@@ -280,12 +297,10 @@ void MX_TIM1_Init(void)
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
   sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+
   HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1);
-
   HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2);
-
   HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3);
-
   HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4);
 
 }
@@ -312,12 +327,10 @@ void MX_TIM3_Init(void)
   sConfigOC.Pulse = 800;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+
   HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1);
-
   HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2);
-
   HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3);
-
   HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4);
 
 }
@@ -423,7 +436,7 @@ void MX_DMA_Init(void)
   __DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
-  HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 4, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
   HAL_NVIC_SetPriority(DMA1_Channel4_5_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel4_5_IRQn);
