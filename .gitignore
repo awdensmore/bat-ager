@@ -6,3 +6,5 @@
 plot/
 code/stm32/Debug
 code/stm32/Release
+code/stm32l0/Debug
+code/stm32l0/Release
