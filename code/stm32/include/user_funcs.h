@@ -56,7 +56,7 @@ DMA_HandleTypeDef hdma_tim3_ch1_trig;
 #define LVDC_ADC_VAL 2719 // ADC reading below which disconnect load from battery.2719
 #define CV_ADC_VAL 3360 // THIS IS A GUESS!!! Switch to CV charging when voltage is >= to this.
 #define FULL_ADC_DIFF 30 // Below this current ADC value, battery is fully charged.
-#define I_ADC_MIDPOINT 2035// ADC reading at which current = 0A
+#define I_ADC_MIDPOINT 1935// ADC reading at which current = 0A. 2035 Rig1 (conv2 / sensor3)
 #define FULL_ADC_VAL (I_ADC_MIDPOINT - FULL_ADC_DIFF)
 #define SINE 10 // % Amplitude of sine wave, scale of [0 - 1000]
 #define REST (uint32_t)1*1*1000 // 30 minutes rest between charge/discharge cycles
