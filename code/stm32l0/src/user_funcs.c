@@ -2,6 +2,16 @@
 
 /* Global variables */
 
+/* modified to handle the non-standard clock config of HAL_SYSTICK_Config()
+ * in SystemClock_Config() */
+//void HAL_Delay(__IO uint32_t Delay)
+//{
+//  uint32_t tickstart = 0;
+//  tickstart = HAL_GetTick();
+//  while((HAL_GetTick() - tickstart) < 100*Delay)
+//  {
+//  }
+//}
 
 void HAL_SYSTICK_IRQHandler(void)
 {
@@ -25,7 +35,7 @@ uint32_t adc_read(uint32_t u32_adc_chan)
 	hstat = HAL_ADC_Start(&hadc);
 	while(j<u8_num_conv)
 	{
-		hstat = HAL_ADC_PollForConversion(&hadc, 100);
+		hstat = HAL_ADC_PollForConversion(&hadc, 1);
 		u32_adc_result = u32_adc_result + HAL_ADC_GetValue(&hadc);
 		j++;
 	}
@@ -50,10 +60,7 @@ void pwm_Set(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_cy
 	TIM_OC_InitTypeDef sConfigOC;
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
 	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-	sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
 	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-	sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
 	sConfigOC.Pulse = (u32_duty_cycle * TIM_PERIOD) / (uint32_t)1000;
 	hstat = HAL_TIM_PWM_ConfigChannel(&htimx, &sConfigOC, tim_channel);
 	hstat = HAL_TIM_PWM_Start(&htimx, tim_channel);
@@ -112,13 +119,13 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, \
    /* Select PI gains based on charging or discharging modes */
    if (mode == DISCHARGE)
    {
-	   p_gain = 30;
-	   i_gain = 2;
+	   p_gain = 100;
+	   i_gain = 1;
    }
    else
    {
-	   p_gain = 30;
-	   i_gain = 6;
+	   p_gain = 20;
+	   i_gain = 3;
    }
 
    diff = (int32_t)u32_adc_val - (int32_t)u32_stpt;
@@ -139,13 +146,13 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, \
 	   {
 		   p = -(diff / p_gain);
 		   pi_j++;
-		   pwm_val_new += min((p+pi_j*(1+i_gain*(p/2))), 30); // slow increase. 20
+		   pwm_val_new += min((p+pi_j*(1+i_gain*(p/2))), 20); // slow increase. 4,1000
 	   }
 	   else // ADC reading is above set point
 	   {
 		   p = -(diff / p_gain);
 		   pi_j++;
-		   pwm_val_new += max((p-pi_j*(1-i_gain*(p/2))), -50); // fast decrease for safety. 20
+		   pwm_val_new += max((p-pi_j*(1-i_gain*(p/2))), -20); // fast decrease for safety.30,1000
 	   }
    }
    else
@@ -167,7 +174,7 @@ status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	batpropsx->v_adc_val = batpropsx->v_adc_val / counter; // Average voltage reading
 
 	/* Determine appropriate pwm value for the discharge FET */
-	batpropsx->pwm_dchg_stpt = max(720,pi_ctrl(batpropsx->id_adc_stpt, batpropsx->pwm_dchg_stpt,\
+	batpropsx->pwm_dchg_stpt = max(500,pi_ctrl(batpropsx->id_adc_stpt, batpropsx->pwm_dchg_stpt,\
 			batpropsx->i_adc_val, batpropsx->adc_val_old, bat_stat));
 
 	/* Check for low voltage disconnect */
@@ -224,7 +231,7 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 
 	/* Determine appropriate pwm value for the charge FET on DC-DC converter */
 
-	batpropsx->pwm_chg_stpt = max(1050, pi_ctrl(u32_adc_stpt, batpropsx->pwm_chg_stpt,\
+	batpropsx->pwm_chg_stpt = max(700, pi_ctrl(u32_adc_stpt, batpropsx->pwm_chg_stpt,\
 				u32_adc_val, batpropsx->adc_val_old, bat_stat));
 
 	/* Check for full battery, else set converter PWM */

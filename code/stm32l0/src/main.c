@@ -3,39 +3,10 @@
   * File Name          : main.c
   * Description        : Main program body
   ******************************************************************************
-  *
-  * COPYRIGHT(c) 2016 STMicroelectronics
-  *
-  * Redistribution and use in source and binary forms, with or without modification,
-  * are permitted provided that the following conditions are met:
-  *   1. Redistributions of source code must retain the above copyright notice,
-  *      this list of conditions and the following disclaimer.
-  *   2. Redistributions in binary form must reproduce the above copyright notice,
-  *      this list of conditions and the following disclaimer in the documentation
-  *      and/or other materials provided with the distribution.
-  *   3. Neither the name of STMicroelectronics nor the names of its contributors
-  *      may be used to endorse or promote products derived from this software
-  *      without specific prior written permission.
-  *
-  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  *
-  ******************************************************************************
-  */
+*/
 /* Includes ------------------------------------------------------------------*/
 #include "stm32l0xx_hal.h"
-
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
+#include "user_funcs.h"
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc;
@@ -47,10 +18,7 @@ DMA_HandleTypeDef hdma_tim2_ch2;
 DMA_HandleTypeDef hdma_tim2_ch3;
 DMA_HandleTypeDef hdma_tim2_ch4;
 
-/* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
-/* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -59,22 +27,10 @@ static void MX_DMA_Init(void);
 static void MX_ADC_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM21_Init(void);
-
-/* USER CODE BEGIN PFP */
-/* Private function prototypes -----------------------------------------------*/
-
-/* USER CODE END PFP */
-
-/* USER CODE BEGIN 0 */
-
-/* USER CODE END 0 */
+void conv_init(batpins batx, batpins baty);
 
 int main(void)
 {
-
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
 
@@ -91,20 +47,141 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM21_Init();
 
-  /* USER CODE BEGIN 2 */
+  /* Define battery pins */
+  pwm_timers b3_tims;
+  b3_tims.conv_timer = htim2;
+  b3_tims.dchg_timer = htim21;
 
-  /* USER CODE END 2 */
+  batpins battery3;
+  battery3.v_adc_chan = ADC_CHANNEL_4;
+  battery3.i_adc_chan = ADC_CHANNEL_8;
+  battery3.chg_port = chg_onoff_3_GPIO_Port;
+  battery3.chg_pin = chg_onoff_3_Pin;
+  battery3.dchg_pin = TIM_CHANNEL_1;
+  battery3.conv_chg_pin = TIM_CHANNEL_1;
+  battery3.conv_dchg_pin = TIM_CHANNEL_2;
+  battery3.pwm_tims = b3_tims;
+
+  pwm_timers b4_tims;
+  b4_tims.conv_timer = htim2;
+  b4_tims.dchg_timer = htim21;
+
+  batpins battery4;
+  battery4.v_adc_chan = ADC_CHANNEL_11;
+  battery4.i_adc_chan = ADC_CHANNEL_10;
+  battery4.chg_port = chg_onoff_4_GPIO_Port;
+  battery4.chg_pin = chg_onoff_4_Pin;
+  battery4.dchg_pin = TIM_CHANNEL_2;
+  battery4.conv_chg_pin = TIM_CHANNEL_3;
+  battery4.conv_dchg_pin = TIM_CHANNEL_4;
+  battery4.pwm_tims = b4_tims;
+
+  /* Battery 3 */
+  batprops props_bat3;
+  props_bat3.i_adc_val = 0;
+  props_bat3.v_adc_val = 0;
+  props_bat3.adc_val_old = adc_read(battery3.i_adc_chan);
+  props_bat3.id_adc_stpt = 300 + props_bat3.adc_val_old;
+  props_bat3.ic_adc_stpt = props_bat3.adc_val_old - 750;
+  props_bat3.conv_bst_stpt = 200; // Need to calibrate this to boost to desired voltage
+  props_bat3.pwm_chg_stpt = 0; 	  // Initialized to 0. Program will change as needed.
+  props_bat3.pwm_dchg_stpt = 720; // Initialize near where discharge FET turns on
+
+  /* Battery 4 */
+  batprops props_bat4;
+  props_bat4.i_adc_val = 0;
+  props_bat4.v_adc_val = 0;
+  props_bat4.adc_val_old = adc_read(battery4.i_adc_chan);
+  props_bat4.id_adc_stpt = 300 + props_bat4.adc_val_old;
+  props_bat4.ic_adc_stpt = props_bat4.adc_val_old - 750;
+  props_bat4.conv_bst_stpt = 200; // Need to calibrate this to boost to desired voltage
+  props_bat4.pwm_chg_stpt = 0; 	  // Initialized to 0. Program will change as needed.
+  props_bat4.pwm_dchg_stpt = 720; // Initialize near where discharge FET turns on
+
+  /* Initialize global variables */
+  TimeCounter = 0;
+  pi_j = 0;
+  uint32_t tk = 0;
+  uint32_t tk_old = 0;
+  uint32_t i = 0;
+  uint32_t voltage = 0;
+  uint32_t current = 720;
+  status bat_stat = OK;
+
+  uint32_t dc_pwm = 500;
+  uint32_t sine = 5;
+
+  /* Initialize converter and charge / discharge pins   */
+  conv_init(battery3, battery4);
+
+  pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
+  //pwm_Set(battery4.pwm_tims.dchg_timer, battery4.dchg_pin, 735);
+  //HAL_GPIO_WritePin(battery4.chg_port, battery4.chg_pin, GPIO_PIN_SET); // Charging On
+  //pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_chg_pin, dc_pwm, sine); // Buck (charge)
+  //HAL_TIM_PWM_Start(&battery4.pwm_tims.conv_timer, battery4.conv_dchg_pin);
+  //HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
   /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
   while (1)
   {
-  /* USER CODE END WHILE */
-
-  /* USER CODE BEGIN 3 */
+	  if(TimeCounter>=26) // 4ms, ie 2 periods of 500Hz sine wave
+	  	  {
+		  	  HAL_GPIO_TogglePin(battery3.chg_port, battery3.chg_pin);
+	  		  switch(bat_stat) {
+	  		  case DISCHARGE:
+	  			  pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_dchg_pin,\
+	  					  props_bat4.conv_bst_stpt, SINE);
+	  			  bat_stat = dchg_ctrl(battery4, &props_bat4, i);
+	  			  break;
+	  		  case CC:
+	  			  bat_stat = chg_ctrl(battery4, &props_bat4, i);
+	  			  break;
+	  		  case CV:
+	  			  bat_stat = chg_ctrl(battery4, &props_bat4, i);
+	  			  break;
+	  		  case FULL:
+	  			  HAL_Delay(REST);
+	  			  props_bat4.i_adc_val = 0;
+	  			  props_bat4.v_adc_val = 0;
+	  			  props_bat4.adc_val_old = adc_read(battery4.i_adc_chan);
+	  			  bat_stat = DISCHARGE;
+	  			  // implement a timer here so battery rests for ~1hr
+	  			  break;
+	  		  case LVDC:
+	  			  HAL_Delay(REST);
+	  			  props_bat4.i_adc_val = 0;
+	  			  props_bat4.v_adc_val = 0;
+	  			  props_bat4.adc_val_old = adc_read(battery4.i_adc_chan);
+	  			  bat_stat = CC;
+	  		  	  // implement a timer here so battery rests for ~1hr
+	  			  break;
+	  		  case OK:
+	  			  props_bat4.i_adc_val = 0; // normally reset in d/chg func, but not used so reset here
+	  			  props_bat4.v_adc_val = 0; // normally reset in d/chg func, but not used so reset here
+	  			  bat_stat = OK;
+	  			  break;
+	  		  default:
+	  			  bat_stat = DISCHARGE;
+	  			  break;
+	  		  }
+	  		  TimeCounter = 0;
+	  		  i = 0;
+	  	  }
+	  	  current = adc_read(battery4.i_adc_chan);
+	  	  voltage = adc_read(battery4.v_adc_chan);
+	  	  /* Over-current protection */
+//	  	  if(current>3950 || current<100)
+//	  	  {
+//	  		  conv_init(battery3, battery4);
+//	  		  while(1){}
+//	  	  }
+	  	  props_bat4.i_adc_val = props_bat4.i_adc_val + current;
+	  	  props_bat4.v_adc_val = props_bat4.v_adc_val + voltage;
+	  	  i++;
+	  	  HAL_SYSTICK_IRQHandler();
 
   }
-  /* USER CODE END 3 */
+
 
 }
 
@@ -148,7 +225,7 @@ void SystemClock_Config(void)
 void MX_ADC_Init(void)
 {
 
-  ADC_ChannelConfTypeDef sConfig;
+  //ADC_ChannelConfTypeDef sConfig;
 
     /**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion) 
     */
@@ -159,7 +236,7 @@ void MX_ADC_Init(void)
   hadc.Init.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
   hadc.Init.ScanConvMode = ADC_SCAN_DIRECTION_FORWARD;
   hadc.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc.Init.ContinuousConvMode = DISABLE;
+  hadc.Init.ContinuousConvMode = ENABLE;
   hadc.Init.DiscontinuousConvMode = DISABLE;
   hadc.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIG_EDGE_NONE;
   hadc.Init.DMAContinuousRequests = DISABLE;
@@ -172,9 +249,10 @@ void MX_ADC_Init(void)
 
     /**Configure for the selected ADC regular channel to be converted. 
     */
-  sConfig.Channel = ADC_CHANNEL_11;
-  sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
-  HAL_ADC_ConfigChannel(&hadc, &sConfig);
+  //sConfig.Channel = ADC_CHANNEL_11;
+  //sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
+  //HAL_ADC_ConfigChannel(&hadc, &sConfig);
+  HAL_ADCEx_Calibration_Start(&hadc, ADC_SINGLE_ENDED);
 
 }
 
@@ -188,7 +266,7 @@ void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 0;
+  htim2.Init.Period = TIM_PERIOD;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   HAL_TIM_PWM_Init(&htim2);
 
@@ -197,15 +275,12 @@ void MX_TIM2_Init(void)
   HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig);
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
+  sConfigOC.Pulse = 500;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
-
   HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_2);
-
   HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3);
-
   HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_4);
 
 }
@@ -220,7 +295,7 @@ void MX_TIM21_Init(void)
   htim21.Instance = TIM21;
   htim21.Init.Prescaler = 0;
   htim21.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim21.Init.Period = 0;
+  htim21.Init.Period = TIM_PERIOD;
   htim21.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   HAL_TIM_PWM_Init(&htim21);
 
@@ -229,11 +304,11 @@ void MX_TIM21_Init(void)
   HAL_TIMEx_MasterConfigSynchronization(&htim21, &sMasterConfig);
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
+  sConfigOC.Pulse = 500;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  HAL_TIM_PWM_ConfigChannel(&htim21, &sConfigOC, TIM_CHANNEL_1);
 
+  HAL_TIM_PWM_ConfigChannel(&htim21, &sConfigOC, TIM_CHANNEL_1);
   HAL_TIM_PWM_ConfigChannel(&htim21, &sConfigOC, TIM_CHANNEL_2);
 
 }
@@ -247,11 +322,11 @@ void MX_DMA_Init(void)
   __DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
-  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 1, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
-  HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 1, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
-  HAL_NVIC_SetPriority(DMA1_Channel4_5_6_7_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA1_Channel4_5_6_7_IRQn, 1, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel4_5_6_7_IRQn);
 
 }
@@ -297,8 +372,8 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : chg_onoff_3_Pin_Pin chg_onoff_4_Pin_Pin */
-  GPIO_InitStruct.Pin = chg_onoff_3_Pin_Pin|chg_onoff_4_Pin_Pin;
+  /*Configure GPIO pins : chg_onoff_3_Pin chg_onoff_4_Pin */
+  GPIO_InitStruct.Pin = chg_onoff_3_Pin|chg_onoff_4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
@@ -306,9 +381,24 @@ void MX_GPIO_Init(void)
 
 }
 
-/* USER CODE BEGIN 4 */
+/* conv_boot
+ * Initialize all converter pins to off
+ */
+void conv_init(batpins batx, batpins baty)
+{
+	/* First battery */
+	HAL_GPIO_WritePin(batx.chg_port, batx.chg_pin, GPIO_PIN_RESET); // Charging off
+	pwm_Set(batx.pwm_tims.dchg_timer, batx.dchg_pin, 0); // Discharge off
+	HAL_TIM_PWM_Stop_DMA(&batx.pwm_tims.conv_timer, batx.conv_chg_pin); // Conv chg off
+	HAL_TIM_PWM_Stop_DMA(&batx.pwm_tims.conv_timer, batx.conv_dchg_pin); // Conv dchg off
 
-/* USER CODE END 4 */
+	/* Second battery */
+	HAL_GPIO_WritePin(baty.chg_port, baty.chg_pin, GPIO_PIN_RESET); // Charging off
+	pwm_Set(baty.pwm_tims.dchg_timer, baty.dchg_pin, 0); // Discharge off
+	HAL_TIM_PWM_Stop_DMA(&baty.pwm_tims.conv_timer, baty.conv_chg_pin); // Conv chg off
+	HAL_TIM_PWM_Stop_DMA(&baty.pwm_tims.conv_timer, baty.conv_dchg_pin); // Conv dchg off
+
+}
 
 #ifdef USE_FULL_ASSERT
 
@@ -329,13 +419,3 @@ void assert_failed(uint8_t* file, uint32_t line)
 }
 
 #endif
-
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-*/ 
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
