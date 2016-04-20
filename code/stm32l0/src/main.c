@@ -101,20 +101,18 @@ int main(void)
   /* Initialize global variables */
   TimeCounter = 0;
   pi_j = 0;
-  uint32_t tk = 0;
-  uint32_t tk_old = 0;
   uint32_t i = 0;
   uint32_t voltage = 0;
   uint32_t current = 720;
   status bat_stat = OK;
 
-  uint32_t dc_pwm = 500;
-  uint32_t sine = 5;
+  //uint32_t dc_pwm = 500;
+  //uint32_t sine = 5;
 
   /* Initialize converter and charge / discharge pins   */
   conv_init(battery3, battery4);
 
-  pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
+  //pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
   //pwm_Set(battery4.pwm_tims.dchg_timer, battery4.dchg_pin, 735);
   //HAL_GPIO_WritePin(battery4.chg_port, battery4.chg_pin, GPIO_PIN_SET); // Charging On
   //pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_chg_pin, dc_pwm, sine); // Buck (charge)
@@ -124,7 +122,7 @@ int main(void)
   /* Infinite loop */
   while (1)
   {
-	  if(TimeCounter>=26) // 4ms, ie 2 periods of 500Hz sine wave
+	  if(TimeCounter>=10) // 4ms, ie 2 periods of 500Hz sine wave
 	  	  {
 		  	  HAL_GPIO_TogglePin(battery3.chg_port, battery3.chg_pin);
 	  		  switch(bat_stat) {
@@ -158,7 +156,7 @@ int main(void)
 	  		  case OK:
 	  			  props_bat4.i_adc_val = 0; // normally reset in d/chg func, but not used so reset here
 	  			  props_bat4.v_adc_val = 0; // normally reset in d/chg func, but not used so reset here
-	  			  bat_stat = OK;
+	  			  bat_stat = CC;
 	  			  break;
 	  		  default:
 	  			  bat_stat = DISCHARGE;
@@ -170,11 +168,11 @@ int main(void)
 	  	  current = adc_read(battery4.i_adc_chan);
 	  	  voltage = adc_read(battery4.v_adc_chan);
 	  	  /* Over-current protection */
-//	  	  if(current>3950 || current<100)
-//	  	  {
-//	  		  conv_init(battery3, battery4);
-//	  		  while(1){}
-//	  	  }
+	  	  if(current>3950 || current<100)
+	  	  {
+	  		  conv_init(battery3, battery4);
+	  		  while(1){}
+	  	  }
 	  	  props_bat4.i_adc_val = props_bat4.i_adc_val + current;
 	  	  props_bat4.v_adc_val = props_bat4.v_adc_val + voltage;
 	  	  i++;

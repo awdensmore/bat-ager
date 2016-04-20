@@ -124,8 +124,8 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, \
    }
    else
    {
-	   p_gain = 20;
-	   i_gain = 3;
+	   p_gain = 100;
+	   i_gain = 1;
    }
 
    diff = (int32_t)u32_adc_val - (int32_t)u32_stpt;
@@ -250,7 +250,7 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	}
 
 	/* Re-set ADC readings and counter */
-	batpropsx->adc_val_old = u32_adc_val;
+	batpropsx->adc_val_old = batpropsx->i_adc_val;
 	batpropsx->i_adc_val = 0;
 	batpropsx->v_adc_val = 0;
 
