@@ -156,7 +156,7 @@ int main(void)
 	  		  case OK:
 	  			  props_bat4.i_adc_val = 0; // normally reset in d/chg func, but not used so reset here
 	  			  props_bat4.v_adc_val = 0; // normally reset in d/chg func, but not used so reset here
-	  			  bat_stat = CC;
+	  			  bat_stat = DISCHARGE;
 	  			  break;
 	  		  default:
 	  			  bat_stat = DISCHARGE;
@@ -231,7 +231,7 @@ void MX_ADC_Init(void)
   hadc.Init.OversamplingMode = DISABLE;
   hadc.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
   hadc.Init.Resolution = ADC_RESOLUTION12b;
-  hadc.Init.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  hadc.Init.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
   hadc.Init.ScanConvMode = ADC_SCAN_DIRECTION_FORWARD;
   hadc.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc.Init.ContinuousConvMode = ENABLE;

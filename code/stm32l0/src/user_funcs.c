@@ -35,7 +35,7 @@ uint32_t adc_read(uint32_t u32_adc_chan)
 	hstat = HAL_ADC_Start(&hadc);
 	while(j<u8_num_conv)
 	{
-		hstat = HAL_ADC_PollForConversion(&hadc, 1);
+		hstat = HAL_ADC_PollForConversion(&hadc, 10);
 		u32_adc_result = u32_adc_result + HAL_ADC_GetValue(&hadc);
 		j++;
 	}
@@ -225,8 +225,12 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 		bat_stat = CC;
 		/* In cc chg mode, lower ADC val = greater current. Therefore adc_val & adc_stpt
 		 * inputs to pi_ctrl() are reversed. */
-		u32_adc_val = batpropsx->ic_adc_stpt;
-		u32_adc_stpt = batpropsx->i_adc_val;
+		/* Change 20 Apr - Instead of reversing stpts and readings (which is confusing to
+		 * debug), transform adc val and setpoint to have same sign and direction as in discharge mode.
+		 * Therefore no changes are needed in pi_ctrl()
+		 */
+		u32_adc_val = I_ADC_MIDPOINT + (I_ADC_MIDPOINT - batpropsx->i_adc_val);
+		u32_adc_stpt = I_ADC_MIDPOINT + (I_ADC_MIDPOINT - batpropsx->ic_adc_stpt);
 	}
 
 	/* Determine appropriate pwm value for the charge FET on DC-DC converter */
@@ -250,7 +254,7 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	}
 
 	/* Re-set ADC readings and counter */
-	batpropsx->adc_val_old = batpropsx->i_adc_val;
+	batpropsx->adc_val_old = u32_adc_val;
 	batpropsx->i_adc_val = 0;
 	batpropsx->v_adc_val = 0;
 
