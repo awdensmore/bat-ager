@@ -42,9 +42,9 @@ TIM_HandleTypeDef htim21;
 #define REST (uint32_t)1*1*1000 // 30 minutes rest between charge/discharge cycles
 
 /* Global variables */
-volatile int32_t pi_j; // integral timer value for PI control loop
+//volatile int32_t pi_j3, pi_j4; // integral timer value for PI control loop
 volatile uint32_t u32_sine_duty_cycle[SINE_RES_500HZ];
-uint32_t TimeCounter;
+uint32_t TimeCounter3, TimeCounter4;
 
 /* Constants */
 static const uint32_t TIM_PERIOD = 1000;
@@ -61,7 +61,7 @@ static const uint32_t TIM_PERIOD = 1000;
      _a < _b ? _a : _b; })
 
 /* Enumeration */
-enum bat_status { OK, DISCHARGE, LVDC, CC, CV, FULL};
+enum bat_status { OK, DISCHARGE, LVDC, CC, CV, FULL, OVERCURRENT};
 
 /* Structures */
 typedef enum bat_status status;// {
@@ -88,6 +88,7 @@ typedef struct batprops {
 	uint32_t i_adc_val;
 	uint32_t adc_val_old;
 	uint32_t v_adc_val;
+	int32_t pi; // counter for the integral gain in PI loop
 }batprops;
 
 
@@ -110,14 +111,17 @@ static const int16_t i16_sine500hz_lookup[SINE_RES_500HZ] =
   -500, -498, -490, -478, -462, -441, -416, -387, -354, -317, -278, -236, -191, -145, -98, -49
 };
 
-//void HAL_Delay(__IO uint32_t Delay);
+// MODIFIED HAL_GetTick in stm32l0xx.hal.c (b/c HAL_SYSTICK_Config changed from 1000->10000
 void HAL_SYSTICK_IRQHandler(void);
 void pwm_Set(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_cycle);
 void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_dc_duty_cycle, uint16_t u8_ampl);
 uint32_t adc_read(uint32_t u32_adc_chan);
 uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, \
-uint32_t u32_adc_val_old, status mode);
+int32_t *pij, uint32_t u32_adc_val_old, status mode);
 uint8_t oc_check(int32_t i32_pwm_val, uint8_t u8_oc_trip);
 status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter);
 status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter);
-//status dchg_ctrl2(batpins batteryx, uint32_t u32_lvdc, uint32_t u32_istpt, int32_t* pi32_pwm_val);
+status discharge_main(batpins pinsx, batprops *batx, uint32_t* restStartms, \
+		uint32_t loops, status bat_stat);
+status cv_main(batpins pinsx, batprops *batx, uint32_t* restStartms, \
+uint32_t loops, status bat_stat);

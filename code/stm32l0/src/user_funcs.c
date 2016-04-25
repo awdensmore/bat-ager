@@ -2,20 +2,11 @@
 
 /* Global variables */
 
-/* modified to handle the non-standard clock config of HAL_SYSTICK_Config()
- * in SystemClock_Config() */
-//void HAL_Delay(__IO uint32_t Delay)
-//{
-//  uint32_t tickstart = 0;
-//  tickstart = HAL_GetTick();
-//  while((HAL_GetTick() - tickstart) < 100*Delay)
-//  {
-//  }
-//}
 
 void HAL_SYSTICK_IRQHandler(void)
 {
-  TimeCounter++;
+  TimeCounter3++;
+  TimeCounter4++;
   HAL_SYSTICK_Callback();
 }
 
@@ -98,14 +89,14 @@ void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_
  * Inputs:  u32_stpt - the ADC set point to control to [0 - 4095]
  * 			int32_t pwm_val - previously set PWM value [0 - 1000]
  * 		    u32_adc_chan - the ADC channel to read from (ADC_CHANNEL_1, etc)
+ * 		    pi_j - the pi loop for this battery
  * 		    status - battery status. Can be CC, CV or DISCHARGE
  * Outputs: pwm_val - next PWM value
  */
 uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, \
-		uint32_t u32_adc_val_old, status mode)
+		int32_t *pij, uint32_t u32_adc_val_old, status mode)
 {
    int32_t p = 0;
-   //int32_t i = 0; unused - probably can remove
    int32_t diff = 0;
    int32_t diff_old = 0;
    uint32_t sign = 0;
@@ -115,6 +106,7 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, \
    int32_t pwm_val_new = (int32_t)pwm_val;
    int32_t p_gain = 0;
    int32_t i_gain = 0;
+   int32_t pi_j = *pij;
 
    /* Select PI gains based on charging or discharging modes */
    if (mode == DISCHARGE)
@@ -163,19 +155,21 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, \
    {
 	   pwm_val_new = 0;
    }
+   *pij = pi_j;
    return (uint32_t)pwm_val_new;
 }
 
 status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 {
 	status bat_stat = DISCHARGE;
+	int32_t pij = batpropsx->pi;
 
 	batpropsx->i_adc_val = batpropsx->i_adc_val / counter; // Average current reading
 	batpropsx->v_adc_val = batpropsx->v_adc_val / counter; // Average voltage reading
 
 	/* Determine appropriate pwm value for the discharge FET */
 	batpropsx->pwm_dchg_stpt = max(500,pi_ctrl(batpropsx->id_adc_stpt, batpropsx->pwm_dchg_stpt,\
-			batpropsx->i_adc_val, batpropsx->adc_val_old, bat_stat));
+			batpropsx->i_adc_val, &pij, batpropsx->adc_val_old, bat_stat));
 
 	/* Check for low voltage disconnect */
 	if(batpropsx->v_adc_val < (uint32_t)LVDC_ADC_VAL)
@@ -190,6 +184,7 @@ status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 
 	/* Re-set ADC readings and counter */
 	batpropsx->adc_val_old = batpropsx->i_adc_val;
+	batpropsx->pi = pij;
 	batpropsx->i_adc_val = 0;
 	batpropsx->v_adc_val = 0;
 
@@ -208,6 +203,7 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 {
 	uint32_t u32_adc_val = 0; // this will be set to i or v depending on mode (CC/CV)
 	uint32_t u32_adc_stpt = 0; // this will be set to i or v depending on mode (CC/CV)
+	int32_t pij = batpropsx->pi;
 	status bat_stat = OK;
 
 	batpropsx->i_adc_val = batpropsx->i_adc_val / counter; // Average current reading
@@ -236,7 +232,8 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	/* Determine appropriate pwm value for the charge FET on DC-DC converter */
 
 	batpropsx->pwm_chg_stpt = max(700, pi_ctrl(u32_adc_stpt, batpropsx->pwm_chg_stpt,\
-				u32_adc_val, batpropsx->adc_val_old, bat_stat));
+				u32_adc_val, &pij, batpropsx->adc_val_old, bat_stat));
+
 
 	/* Check for full battery, else set converter PWM */
 	if(bat_stat == CV && batpropsx->i_adc_val >= (uint32_t)FULL_ADC_VAL)
@@ -255,8 +252,54 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 
 	/* Re-set ADC readings and counter */
 	batpropsx->adc_val_old = u32_adc_val;
+	batpropsx->pi = pij;
 	batpropsx->i_adc_val = 0;
 	batpropsx->v_adc_val = 0;
+
+	return bat_stat;
+}
+
+/* The functions below implement features that previously were explicitly
+ * written into the while() loop of main.c
+ */
+
+/* discharge_main()
+ * Inputs: batprops *batx = properties of the battery to discharge
+ * 		   batpins pinsx = pins controlling the battery to discharge
+ * 		   *restStartms = if LVDC, start of rest timer
+ * 		   loops = number of loops to average ADC readings
+ * 		   bat_stat = battery status
+ * Output: bat_stat
+ */
+status discharge_main(batpins pinsx, batprops *batx, uint32_t* restStartms, \
+		uint32_t loops, status bat_stat)
+{
+	pwm_sine_Start(pinsx.pwm_tims.conv_timer, pinsx.conv_dchg_pin, \
+			batx->conv_bst_stpt, SINE);
+	bat_stat = dchg_ctrl(pinsx, batx, loops);
+	if(bat_stat == LVDC)
+	{
+		*restStartms = HAL_GetTick();
+	}
+
+	return bat_stat;
+}
+
+/* cv_main()
+ * Inputs: batpins pinsx
+ * 		   batprops batx
+ * 		   uint32_t *restStartms
+ * 		   status bat_stat
+ * Outputs: bat_stat
+ */
+status cv_main(batpins pinsx, batprops *batx, uint32_t* restStartms, \
+		uint32_t loops, status bat_stat)
+{
+	bat_stat = chg_ctrl(pinsx, batx, loops);
+	if(bat_stat == FULL)
+	{
+		*restStartms = HAL_GetTick();
+	}
 
 	return bat_stat;
 }
