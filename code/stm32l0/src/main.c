@@ -101,21 +101,26 @@ int main(void)
   props_bat4.pi = 0;
 
   /* Initialize global variables */
+#ifdef BAT1
   TimeCounter3 = 0;
   TimeCounter4 = 0;
   uint32_t restStartms3 = 0;
-  uint32_t restStartms4 = 0;
   uint32_t i3 = 0;
-  uint32_t i4 = 0;
   uint32_t voltage3 = 0;
-  uint32_t voltage4 = 0;
   uint32_t current3 = 720;
-  uint32_t current4 = 720;
   status bat_stat3 = OK;
+#endif
+
+#ifdef BAT2
+  uint32_t restStartms4 = 0;
+  uint32_t i4 = 0;
+  uint32_t voltage4 = 0;
+  uint32_t current4 = 720;
   status bat_stat4 = OK;
+#endif
 
   //uint32_t dc_pwm = 500;
- //uint32_t sine = 5;
+  //uint32_t sine = 5;
 
   /* Initialize converter and charge / discharge pins   */
   conv_init(battery3);
@@ -123,14 +128,17 @@ int main(void)
 
   //pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
   //pwm_Set(battery3.pwm_tims.dchg_timer, battery3.dchg_pin, 735);
-  //HAL_GPIO_WritePin(battery3.chg_port, battery3.chg_pin, GPIO_PIN_SET); // Charging On
+  //pwm_Set(battery3.pwm_tims.dchg_timer, battery3.dchg_pin, 0);
   //pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_chg_pin, dc_pwm, sine); // Buck (charge)
+  //HAL_GPIO_WritePin(battery3.chg_port, battery3.chg_pin, GPIO_PIN_SET); // Charging On
+  //pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_chg_pin, dc_pwm, sine); // Buck (charge)
   //HAL_TIM_PWM_Start(&battery4.pwm_tims.conv_timer, battery4.conv_dchg_pin);
   //HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
   /* Infinite loop */
   while (1)
   {
+#ifdef BAT1
 	  /* First battery */
 	  if(TimeCounter3>=5) // 4ms, ie 2 periods of 500Hz sine wave
 	  	  {
@@ -178,12 +186,28 @@ int main(void)
 	  		  i3 = 0;
 	  	  }
 
+  	  /* Update ADC readings */
+  	  current3 = adc_read(battery3.i_adc_chan);
+  	  voltage3 = adc_read(battery3.v_adc_chan);
+  	  props_bat3.i_adc_val = props_bat3.i_adc_val + current3;
+  	  props_bat3.v_adc_val = props_bat3.v_adc_val + voltage3;
+
+  	  /* Over-current protection */
+  	  if(current3>3950 || current3<100)
+  	  {
+  		  conv_init(battery3);
+  		  bat_stat3 = OVERCURRENT;
+  	  }
+  	  i3++;
+#endif
+
+#ifdef BAT2
 	  /* Second battery */
 	  if(TimeCounter4>=5) // 4ms, ie 2 periods of 500Hz sine wave
 		  {
 			  switch(bat_stat4) {
 			  case DISCHARGE:
-				  bat_stat3 = discharge_main(battery4, &props_bat4, &restStartms4, i4, bat_stat4);
+				  bat_stat4 = discharge_main(battery4, &props_bat4, &restStartms4, i4, bat_stat4);
 				  break;
 			  case CC:
 				  bat_stat4 = chg_ctrl(battery4, &props_bat4, i4);
@@ -212,7 +236,7 @@ int main(void)
 			  case OK:
 				  props_bat4.i_adc_val = 0; // normally reset in d/chg func, but not used so reset here
 				  props_bat4.v_adc_val = 0; // normally reset in d/chg func, but not used so reset here
-				  bat_stat4 = OK;
+				  bat_stat4 = CC;
 				  break;
 			  case OVERCURRENT:
 				  bat_stat4 = OVERCURRENT;
@@ -225,32 +249,23 @@ int main(void)
 			  i4 = 0;
 		  }
 
-	  	  /* Update ADC readings */
-	  	  current3 = adc_read(battery3.i_adc_chan);
-	  	  voltage3 = adc_read(battery3.v_adc_chan);
-	  	  props_bat3.i_adc_val = props_bat3.i_adc_val + current3;
-	  	  props_bat3.v_adc_val = props_bat3.v_adc_val + voltage3;
+	  /* Update ADC readings */
+  	  current4 = adc_read(battery4.i_adc_chan);
+  	  voltage4 = adc_read(battery4.v_adc_chan);
+  	  props_bat4.i_adc_val = props_bat4.i_adc_val + current4;
+  	  props_bat4.v_adc_val = props_bat4.v_adc_val + voltage4;
 
-	  	  current4 = adc_read(battery4.i_adc_chan);
-	  	  voltage4 = adc_read(battery4.v_adc_chan);
-	  	  props_bat4.i_adc_val = props_bat4.i_adc_val + current4;
-	  	  props_bat4.v_adc_val = props_bat4.v_adc_val + voltage4;
+  	  /* Over-current protection */
+  	  if(current4>3950 || current4<100)
+  	  {
+  		  conv_init(battery4);
+  		  bat_stat4 = OVERCURRENT;
+  	  }
+  	  i4++;
 
-	  	  /* Over-current protection */
-	  	  if(current3>3950 || current3<100)
-	  	  {
-	  		  conv_init(battery3);
-	  		  bat_stat3 = OVERCURRENT;
-	  	  }
-	  	  if(current4>3950 || current4<100)
-	  	  {
-	  		  conv_init(battery4);
-	  		  bat_stat3 = OVERCURRENT;
-	  	  }
+#endif
 
-	  	  i3++;
-	  	  i4++;
-	  	  HAL_SYSTICK_IRQHandler();
+	  HAL_SYSTICK_IRQHandler();
 
   }
 
@@ -460,6 +475,7 @@ void conv_init(batpins batx)
 {
 	/* First battery */
 	HAL_GPIO_WritePin(batx.chg_port, batx.chg_pin, GPIO_PIN_RESET); // Charging off
+	pwm_Set(batx.pwm_tims.dchg_timer, batx.dchg_pin, 0);
 	HAL_TIM_PWM_Stop(&batx.pwm_tims.dchg_timer, batx.dchg_pin); // Discharge off
 	HAL_TIM_PWM_Stop_DMA(&batx.pwm_tims.conv_timer, batx.conv_chg_pin); // Conv chg off
 	HAL_TIM_PWM_Stop_DMA(&batx.pwm_tims.conv_timer, batx.conv_dchg_pin); // Conv dchg off

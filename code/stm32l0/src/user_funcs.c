@@ -138,13 +138,13 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, \
 	   {
 		   p = -(diff / p_gain);
 		   pi_j++;
-		   pwm_val_new += min((p+pi_j*(1+i_gain*(p/2))), 20); // slow increase. 4,1000
+		   pwm_val_new += min((p+pi_j*(1+i_gain*(p/2))), 10); // slow increase. 4,1000
 	   }
 	   else // ADC reading is above set point
 	   {
 		   p = -(diff / p_gain);
 		   pi_j++;
-		   pwm_val_new += max((p-pi_j*(1-i_gain*(p/2))), -20); // fast decrease for safety.30,1000
+		   pwm_val_new += max((p-pi_j*(1-i_gain*(p/2))), -10); // fast decrease for safety.30,1000
 	   }
    }
    else
@@ -154,6 +154,10 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, \
    if(pwm_val_new < 0)
    {
 	   pwm_val_new = 0;
+   }
+   else if(pwm_val_new > (uint32_t)TIM_PERIOD)
+   {
+	   pwm_val_new = (uint32_t)TIM_PERIOD;
    }
    *pij = pi_j;
    return (uint32_t)pwm_val_new;
@@ -231,7 +235,7 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 
 	/* Determine appropriate pwm value for the charge FET on DC-DC converter */
 
-	batpropsx->pwm_chg_stpt = max(700, pi_ctrl(u32_adc_stpt, batpropsx->pwm_chg_stpt,\
+	batpropsx->pwm_chg_stpt = max(50, pi_ctrl(u32_adc_stpt, batpropsx->pwm_chg_stpt,\
 				u32_adc_val, &pij, batpropsx->adc_val_old, bat_stat));
 
 
