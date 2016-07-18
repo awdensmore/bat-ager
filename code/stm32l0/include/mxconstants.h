@@ -44,9 +44,9 @@
 #define ADC_4i_GPIO_Port GPIOC
 #define ADC_4v_Pin GPIO_PIN_1
 #define ADC_4v_GPIO_Port GPIOC
-#define fet_ctrl_3a_Pin GPIO_PIN_0
+#define fet_ctrl_3a_Pin GPIO_PIN_0 // Changed from 0
 #define fet_ctrl_3a_GPIO_Port GPIOA
-#define fet_ctrl_3b_Pin GPIO_PIN_1
+#define fet_ctrl_3b_Pin GPIO_PIN_1 // Changed from 1
 #define fet_ctrl_3b_GPIO_Port GPIOA
 #define USART_TX_Pin GPIO_PIN_2
 #define USART_TX_GPIO_Port GPIOA

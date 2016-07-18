@@ -86,7 +86,7 @@ int main(void)
   props_bat1.v_adc_val = 0;
   props_bat1.adc_val_old = adc_read(battery1.i_adc_chan);
   props_bat1.id_adc_stpt = 600 + props_bat1.adc_val_old;
-  props_bat1.ic_adc_stpt = props_bat1.adc_val_old - 750;
+  props_bat1.ic_adc_stpt = props_bat1.adc_val_old - 200;
   //props_bat1.v_adc_stpt = 1000; // Not sure what this should be.
   props_bat1.conv_bst_stpt = 300; // Need to calibrate this to boost to desired voltage
   props_bat1.pwm_chg_stpt = 0; 	  // Initialized to 0. Program will change as needed.
@@ -115,16 +115,17 @@ int main(void)
   CHARGING_OFF; // Charging on/off
 
   /* Initialize Converter output */
-  //uint32_t dc_pwm = 1200;
-  //uint32_t sine = 5;
+  //uint32_t dc_pwm = 600;
+  //uint32_t sine = 0;
   //pwm_Set(htim1, TIM_CHANNEL_2, 99);
   //CHARGING_OFF;
   //CHARGING_ON;
 
+  //pwm_Set(battery2.pwm_tims.dchg_timer, battery2.dchg_pin, 0);
   //pwm_sine_Start(battery2.pwm_tims.conv_timer, battery2.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
-  //pwm_Set(battery2.pwm_tims.dchg_timer, battery2.dchg_pin, 735);
-  //HAL_GPIO_WritePin(battery2.chg_port, battery2.chg_pin, GPIO_PIN_SET); // Charging On
-  //pwm_sine_Start(battery2.pwm_tims.conv_timer, battery2.conv_chg_pin, dc_pwm, sine); // Buck (charge)
+  //pwm_Set(battery2.pwm_tims.dchg_timer, battery2.dchg_pin, 720);
+  //pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_chg_pin, dc_pwm, sine); // Buck (charge)
+  //HAL_GPIO_WritePin(battery1.chg_port, battery1.chg_pin, GPIO_PIN_SET); // Charging On
   //HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
   /* Initialize global variables */
@@ -144,25 +145,25 @@ int main(void)
 		  case DISCHARGE:
 			  //CHARGING_OFF;
 			  //CONV_CHG_OFF;
-			  pwm_sine_Start(battery2.pwm_tims.conv_timer, battery2.conv_dchg_pin,\
-					  props_bat2.conv_bst_stpt, SINE);
-			  bat_stat = dchg_ctrl(battery2, &props_bat2, i);
+			  pwm_sine_Start(battery1.pwm_tims.conv_timer, battery1.conv_dchg_pin,\
+					  props_bat1.conv_bst_stpt, SINE);
+			  bat_stat = dchg_ctrl(battery1, &props_bat1, i);
 			  break;
 		  case CC:
 			  //DISCHARGE_OFF;
 			  //CONV_DCHG_OFF;
-			  bat_stat = chg_ctrl(battery2, &props_bat2, i);
+			  bat_stat = chg_ctrl(battery1, &props_bat1, i);
 			  break;
 		  case CV:
 			  //DISCHARGE_OFF;
 			  //CONV_DCHG_OFF;
-			  bat_stat = chg_ctrl(battery2, &props_bat2, i);
+			  bat_stat = chg_ctrl(battery1, &props_bat1, i);
 			  break;
 		  case FULL:
 			  HAL_Delay(REST);
 			  props_bat2.i_adc_val = 0;
 			  props_bat2.v_adc_val = 0;
-			  props_bat2.adc_val_old = adc_read(battery2.i_adc_chan);
+			  props_bat2.adc_val_old = adc_read(battery1.i_adc_chan);
 			  bat_stat = DISCHARGE;
 			  // implement a timer here so battery rests for ~1hr
 			  break;
@@ -170,13 +171,13 @@ int main(void)
 			  HAL_Delay(REST);
 			  props_bat2.i_adc_val = 0;
 			  props_bat2.v_adc_val = 0;
-			  props_bat2.adc_val_old = adc_read(battery2.i_adc_chan);
+			  props_bat2.adc_val_old = adc_read(battery1.i_adc_chan);
 			  bat_stat = CC;
 		  	  // implement a timer here so battery rests for ~1hr
 			  break;
 		  case OK:
-			  props_bat2.i_adc_val = 0; // normally reset in d/chg func, but not used so reset here
-			  props_bat2.v_adc_val = 0; // normally reset in d/chg func, but not used so reset here
+			  props_bat1.i_adc_val = 0; // normally reset in d/chg func, but not used so reset here
+			  props_bat1.v_adc_val = 0; // normally reset in d/chg func, but not used so reset here
 			  bat_stat = CC;
 			  //props_bat1.pwm_chg_stpt = 1300;
 			  // what to do here?
@@ -196,16 +197,16 @@ int main(void)
 		      HAL_Delay(200);
 		  }
 	  }*/
-	  current = adc_read(battery2.i_adc_chan);
-	  voltage = adc_read(battery2.v_adc_chan);
+	  current = adc_read(battery1.i_adc_chan);
+	  voltage = adc_read(battery1.v_adc_chan);
 	  if(current>3950 || current<100)
 	  {
 		  DISCHARGE_OFF;
 		  CHARGING_OFF;
 		  while(1){}
 	  }
-	  props_bat2.i_adc_val = props_bat2.i_adc_val + current;
-	  props_bat2.v_adc_val = props_bat2.v_adc_val + voltage;
+	  props_bat1.i_adc_val = props_bat1.i_adc_val + current;
+	  props_bat1.v_adc_val = props_bat1.v_adc_val + voltage;
 	  i++;
 	  HAL_SYSTICK_IRQHandler();
   }
@@ -488,7 +489,7 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : chg_onoff_1_Pin chg_onoff_2_Pin chg_onoff_3_Pin */
-  GPIO_InitStruct.Pin = chg_onoff_1_Pin|chg_onoff_2_Pin|chg_onoff_3_Pin;
+  GPIO_InitStruct.Pin = chg_onoff_1_Pin|chg_onoff_2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_LOW;

@@ -19,7 +19,7 @@
  * TIM1_CH3 -> fet_ctrl_2a_Pin -> PA10 (DMA1_Channel5) ch3_up - might not work?
  * TIM1_CH4 -> fet_ctrl_2b_Pin -> PA11 (DMA1_Channel4) ch4_trig_com - might not work?
  *
- * TIM3_CH1 -> fet_ctrl_3a_Pin -> PC6
+ * TIM3_CH1 -> fet_ctrl_3a_Pin -> PC6 ELIMINATED 8 July 2016. Re-purposed for chg_onoff_2_Pin
  * TIM3_CH2 -> fet_ctrl_3b_Pin -> PC7
  * TIM3_CH3 -> dchg_ctrl_1_Pin -> PC8
  * TIM3_CH4 -> dchg_ctrl_2_Pin -> PC9
@@ -29,9 +29,9 @@
  * TIM17_CH1 -> fet_Ctrl_5b_Pin -> PB9
  *
  * GPIO
- * GPIO_PIN10 -> chg_onoff_1_Pin -> C10
- * GPIO_PIN11 -> chg_onoff_2_Pin -> C11
- * GPIO_PIN12 -> chg_onoff_3_Pin -> C12
+ * GPIO_PIN10 -> chg_onoff_1_Pin -> C12
+ * GPIO_PIN11 -> chg_onoff_2_Pin -> C6
+ * GPIO_PIN12 -> chg_onoff_3_Pin -> C12 ELIMINATED 8 July 2016
  */
 
 #include "stm32f0xx_hal.h"
@@ -56,7 +56,7 @@ DMA_HandleTypeDef hdma_tim3_ch1_trig;
 #define LVDC_ADC_VAL 2719 // ADC reading below which disconnect load from battery.2719
 #define CV_ADC_VAL 3360 // THIS IS A GUESS!!! Switch to CV charging when voltage is >= to this.
 #define FULL_ADC_DIFF 30 // Below this current ADC value, battery is fully charged.
-#define I_ADC_MIDPOINT 1935// ADC reading at which current = 0A. 2035 Rig1 (conv2 / sensor3)
+#define I_ADC_MIDPOINT 2202// ADC reading at which current = 0A. 2035 Rig1 (conv2 / sensor3)
 #define FULL_ADC_VAL (I_ADC_MIDPOINT - FULL_ADC_DIFF)
 #define SINE 10 // % Amplitude of sine wave, scale of [0 - 1000]
 #define REST (uint32_t)1*1*1000 // 30 minutes rest between charge/discharge cycles

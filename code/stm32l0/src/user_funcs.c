@@ -108,17 +108,7 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, \
    int32_t i_gain = 0;
    int32_t pi_j = *pij;
 
-   /* Select PI gains based on charging or discharging modes */
-   if (mode == DISCHARGE)
-   {
-	   p_gain = 100;
-	   i_gain = 1;
-   }
-   else
-   {
-	   p_gain = 100;
-	   i_gain = 1;
-   }
+
 
    diff = (int32_t)u32_adc_val - (int32_t)u32_stpt;
    diff_old = (int32_t)u32_adc_val_old - (int32_t)u32_stpt;
@@ -134,7 +124,29 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, \
    /* determine if ADC reading is outside allowable error from set point */
    if((uint32_t)abs(diff) > err)
    {
-	   if(sign) // ADC reading is below set point
+	   /* Select PI gains based on charging or discharging modes */
+	  if (mode == DISCHARGE && sign)
+	  {
+		  pwm_val_new += 1;
+	  }
+	  else if (mode == DISCHARGE && !sign)
+	  {
+		  pwm_val_new -= 1;
+	  }
+	  else if (mode == CC && sign)
+	  {
+		  p_gain = 100;
+		  i_gain = 1;
+		  pwm_val_new += min((p+pi_j*(1+i_gain*(p/2))), 10); // slow increase. 4,1000
+	  }
+	  else if (mode == CC && !sign)
+	  {
+		  p_gain = 100;
+		  i_gain = 1;
+		  pwm_val_new += max((p-pi_j*(1-i_gain*(p/2))), -10); // fast decrease for safety.30,1000
+	  }
+
+/*	   if(sign) // ADC reading is below set point
 	   {
 		   p = -(diff / p_gain);
 		   pi_j++;
@@ -145,7 +157,7 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, \
 		   p = -(diff / p_gain);
 		   pi_j++;
 		   pwm_val_new += max((p-pi_j*(1-i_gain*(p/2))), -10); // fast decrease for safety.30,1000
-	   }
+	   }*/
    }
    else
    {

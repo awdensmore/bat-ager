@@ -55,8 +55,8 @@ int main(void)
   batpins battery3;
   battery3.v_adc_chan = ADC_CHANNEL_4;
   battery3.i_adc_chan = ADC_CHANNEL_8;
-  battery3.chg_port = chg_onoff_3_GPIO_Port;
-  battery3.chg_pin = chg_onoff_3_Pin;
+  battery3.chg_port = GPIOC;//chg_onoff_3_GPIO_Port;
+  battery3.chg_pin = GPIO_PIN_8;//chg_onoff_3_Pin;
   battery3.dchg_pin = TIM_CHANNEL_1;
   battery3.conv_chg_pin = TIM_CHANNEL_1;
   battery3.conv_dchg_pin = TIM_CHANNEL_2;
@@ -119,20 +119,20 @@ int main(void)
   status bat_stat4 = OK;
 #endif
 
-  //uint32_t dc_pwm = 500;
-  //uint32_t sine = 5;
+  uint32_t dc_pwm = 500;
+  uint32_t sine = 0;
 
   /* Initialize converter and charge / discharge pins   */
   conv_init(battery3);
   conv_init(battery4);
 
   //pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
-  //pwm_Set(battery3.pwm_tims.dchg_timer, battery3.dchg_pin, 735);
-  //pwm_Set(battery3.pwm_tims.dchg_timer, battery3.dchg_pin, 0);
+  //pwm_Set(battery3.pwm_tims.dchg_timer, battery3.dchg_pin, 755);
   //pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_chg_pin, dc_pwm, sine); // Buck (charge)
   //HAL_GPIO_WritePin(battery3.chg_port, battery3.chg_pin, GPIO_PIN_SET); // Charging On
+  //HAL_GPIO_WritePin(battery4.chg_port, battery4.chg_pin, GPIO_PIN_SET); // Charging On
   //pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_chg_pin, dc_pwm, sine); // Buck (charge)
-  //HAL_TIM_PWM_Start(&battery4.pwm_tims.conv_timer, battery4.conv_dchg_pin);
+  //HAL_TIM_PWM_Start(battery3.pwm_tims.conv_timer, battery3.conv_dchg_pin);
   //HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
   /* Infinite loop */

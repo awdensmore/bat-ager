@@ -66,8 +66,8 @@
 #define ADC_3i_GPIO_Port GPIOB
 #define ADC_4v_Pin GPIO_PIN_1
 #define ADC_4v_GPIO_Port GPIOB
-#define fet_ctrl_3a_Pin GPIO_PIN_6
-#define fet_ctrl_3a_GPIO_Port GPIOC
+//#define fet_ctrl_3a_Pin GPIO_PIN_6
+//#define fet_ctrl_3a_GPIO_Port GPIOC
 #define fet_ctrl_3b_Pin GPIO_PIN_7
 #define fet_ctrl_3b_GPIO_Port GPIOC
 #define dchg_ctrl_1_Pin GPIO_PIN_8
@@ -86,12 +86,12 @@
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
-#define chg_onoff_1_Pin GPIO_PIN_10
+#define chg_onoff_1_Pin GPIO_PIN_12 // From 10 -> 12
 #define chg_onoff_1_GPIO_Port GPIOC
-#define chg_onoff_2_Pin GPIO_PIN_11
+#define chg_onoff_2_Pin GPIO_PIN_6 // From 11 -> 6
 #define chg_onoff_2_GPIO_Port GPIOC
-#define chg_onoff_3_Pin GPIO_PIN_12
-#define chg_onoff_3_GPIO_Port GPIOC
+//#define chg_onoff_3_Pin GPIO_PIN_12
+//#define chg_onoff_3_GPIO_Port GPIOC
 #define dchg_ctrl_3_Pin GPIO_PIN_8
 #define dchg_ctrl_3_GPIO_Port GPIOB
 #define fet_ctrl_5b_Pin GPIO_PIN_9
