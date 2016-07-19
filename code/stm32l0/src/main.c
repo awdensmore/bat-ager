@@ -82,7 +82,7 @@ int main(void)
   props_bat3.v_adc_val = 0;
   props_bat3.adc_val_old = adc_read(battery3.i_adc_chan);
   props_bat3.id_adc_stpt = 300 + props_bat3.adc_val_old;
-  props_bat3.ic_adc_stpt = props_bat3.adc_val_old - 750;
+  props_bat3.ic_adc_stpt = props_bat3.adc_val_old - 100;
   props_bat3.conv_bst_stpt = 200; // Need to calibrate this to boost to desired voltage
   props_bat3.pwm_chg_stpt = 0; 	  // Initialized to 0. Program will change as needed.
   props_bat3.pwm_dchg_stpt = 720; // Initialize near where discharge FET turns on
@@ -126,6 +126,15 @@ int main(void)
   conv_init(battery3);
   conv_init(battery4);
 
+/*  HAL_GPIO_WritePin(battery3.chg_port, battery3.chg_pin, GPIO_PIN_SET); // Charging On
+  uint16_t lp = 0;
+  while(lp<=1000)
+  {
+	  pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_chg_pin, lp, sine);
+	  HAL_Delay(10);
+	  current3 = adc_read(battery3.i_adc_chan);
+	  lp+=100;
+  }*/
   //pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
   //pwm_Set(battery3.pwm_tims.dchg_timer, battery3.dchg_pin, 755);
   //pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_chg_pin, dc_pwm, sine); // Buck (charge)
@@ -173,7 +182,7 @@ int main(void)
 	  		  case OK:
 	  			  props_bat3.i_adc_val = 0; // normally reset in d/chg func, but not used so reset here
 	  			  props_bat3.v_adc_val = 0; // normally reset in d/chg func, but not used so reset here
-	  			  bat_stat3 = CC;
+	  			  bat_stat3 = DISCHARGE;
 	  			  break;
 	  		  case OVERCURRENT:
 	  			  bat_stat3 = OVERCURRENT;

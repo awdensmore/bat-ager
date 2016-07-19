@@ -133,17 +133,19 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, \
 	  {
 		  pwm_val_new -= 1;
 	  }
-	  else if (mode == CC && sign)
+	  else if ((mode == CC || CV) && sign)
 	  {
 		  p_gain = 100;
 		  i_gain = 1;
-		  pwm_val_new += min((p+pi_j*(1+i_gain*(p/2))), 10); // slow increase. 4,1000
+		  pi_j++;
+		  pwm_val_new += min((p+pi_j*(1+i_gain*(p/2))), 2); // slow increase. 4,1000
 	  }
-	  else if (mode == CC && !sign)
+	  else if ((mode == CC || CV) && !sign)
 	  {
 		  p_gain = 100;
 		  i_gain = 1;
-		  pwm_val_new += max((p-pi_j*(1-i_gain*(p/2))), -10); // fast decrease for safety.30,1000
+		  pi_j++;
+		  pwm_val_new += max((p-pi_j*(1-i_gain*(p/2))), -4); // fast decrease for safety.30,1000
 	  }
 
 /*	   if(sign) // ADC reading is below set point
