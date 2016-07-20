@@ -47,16 +47,34 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM21_Init();
 
-  /* Define battery pins */
+  batpins battery3;
+  batpins battery4;
   pwm_timers b3_tims;
+  pwm_timers b4_tims;
+  batprops props_bat3;
+  batprops props_bat4;
+
+#ifdef BRD1
+  b3_tims.conv_timer = htim1;
+  b3_tims.dchg_timer = htim3;
+
+  battery3.v_adc_chan = ADC_CHANNEL_0;
+  battery3.i_adc_chan = ADC_CHANNEL_1;
+  battery3.chg_port = chg_onoff_3_GPIO_Port;
+  battery3.chg_pin = chg_onoff_3_Pin;
+  battery3.dchg_pin = TIM_CHANNEL_3;
+  battery3.conv_chg_pin = TIM_CHANNEL_1;
+  battery3.conv_dchg_pin = TIM_CHANNEL_2;
+  battery3.pwm_tims = b3_tims;
+
+#else
   b3_tims.conv_timer = htim2;
   b3_tims.dchg_timer = htim21;
 
-  batpins battery3;
   battery3.v_adc_chan = ADC_CHANNEL_4;
   battery3.i_adc_chan = ADC_CHANNEL_8;
-  battery3.chg_port = GPIOC;//chg_onoff_3_GPIO_Port;
-  battery3.chg_pin = GPIO_PIN_8;//chg_onoff_3_Pin;
+  battery3.chg_port = chg_onoff_3_GPIO_Port;
+  battery3.chg_pin = chg_onoff_3_Pin;
   battery3.dchg_pin = TIM_CHANNEL_1;
   battery3.conv_chg_pin = TIM_CHANNEL_1;
   battery3.conv_dchg_pin = TIM_CHANNEL_2;
@@ -135,8 +153,12 @@ int main(void)
 	  current3 = adc_read(battery3.i_adc_chan);
 	  lp+=100;
   }*/
-  //pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
-  //pwm_Set(battery3.pwm_tims.dchg_timer, battery3.dchg_pin, 755);
+  pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
+  pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_chg_pin, dc_pwm, sine); // Buck (charge)
+  pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
+  pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_chg_pin, dc_pwm, sine); // Buck (charge)
+  pwm_Set(battery3.pwm_tims.dchg_timer, battery3.dchg_pin, 755);
+  pwm_Set(battery4.pwm_tims.dchg_timer, battery4.dchg_pin, 755);
   //pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_chg_pin, dc_pwm, sine); // Buck (charge)
   //HAL_GPIO_WritePin(battery3.chg_port, battery3.chg_pin, GPIO_PIN_SET); // Charging On
   //HAL_GPIO_WritePin(battery4.chg_port, battery4.chg_pin, GPIO_PIN_SET); // Charging On
