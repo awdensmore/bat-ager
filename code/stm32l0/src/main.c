@@ -54,20 +54,7 @@ int main(void)
   batprops props_bat3;
   batprops props_bat4;
 
-#ifdef BRD1
-  b3_tims.conv_timer = htim1;
-  b3_tims.dchg_timer = htim3;
-
-  battery3.v_adc_chan = ADC_CHANNEL_0;
-  battery3.i_adc_chan = ADC_CHANNEL_1;
-  battery3.chg_port = chg_onoff_3_GPIO_Port;
-  battery3.chg_pin = chg_onoff_3_Pin;
-  battery3.dchg_pin = TIM_CHANNEL_3;
-  battery3.conv_chg_pin = TIM_CHANNEL_1;
-  battery3.conv_dchg_pin = TIM_CHANNEL_2;
-  battery3.pwm_tims = b3_tims;
-
-#else
+  /* Battery 3 */
   b3_tims.conv_timer = htim2;
   b3_tims.dchg_timer = htim21;
 
@@ -80,22 +67,6 @@ int main(void)
   battery3.conv_dchg_pin = TIM_CHANNEL_2;
   battery3.pwm_tims = b3_tims;
 
-  pwm_timers b4_tims;
-  b4_tims.conv_timer = htim2;
-  b4_tims.dchg_timer = htim21;
-
-  batpins battery4;
-  battery4.v_adc_chan = ADC_CHANNEL_11;
-  battery4.i_adc_chan = ADC_CHANNEL_10;
-  battery4.chg_port = chg_onoff_4_GPIO_Port;
-  battery4.chg_pin = chg_onoff_4_Pin;
-  battery4.dchg_pin = TIM_CHANNEL_2;
-  battery4.conv_chg_pin = TIM_CHANNEL_3;
-  battery4.conv_dchg_pin = TIM_CHANNEL_4;
-  battery4.pwm_tims = b4_tims;
-
-  /* Battery 3 */
-  batprops props_bat3;
   props_bat3.i_adc_val = 0;
   props_bat3.v_adc_val = 0;
   props_bat3.adc_val_old = adc_read(battery3.i_adc_chan);
@@ -107,12 +78,23 @@ int main(void)
   props_bat3.pi = 0;
 
   /* Battery 4 */
-  batprops props_bat4;
+  b4_tims.conv_timer = htim2;
+  b4_tims.dchg_timer = htim21;
+
+  battery4.v_adc_chan = ADC_CHANNEL_11;
+  battery4.i_adc_chan = ADC_CHANNEL_10;
+  battery4.chg_port = chg_onoff_4_GPIO_Port;
+  battery4.chg_pin = chg_onoff_4_Pin;
+  battery4.dchg_pin = TIM_CHANNEL_2;
+  battery4.conv_chg_pin = TIM_CHANNEL_3;
+  battery4.conv_dchg_pin = TIM_CHANNEL_4;
+  battery4.pwm_tims = b4_tims;
+
   props_bat4.i_adc_val = 0;
   props_bat4.v_adc_val = 0;
   props_bat4.adc_val_old = adc_read(battery4.i_adc_chan);
-  props_bat4.id_adc_stpt = 300 + props_bat4.adc_val_old;
-  props_bat4.ic_adc_stpt = props_bat4.adc_val_old - 750;
+  props_bat4.id_adc_stpt = 250 + props_bat4.adc_val_old;
+  props_bat4.ic_adc_stpt = props_bat4.adc_val_old - 400;
   props_bat4.conv_bst_stpt = 200; // Need to calibrate this to boost to desired voltage
   props_bat4.pwm_chg_stpt = 0; 	  // Initialized to 0. Program will change as needed.
   props_bat4.pwm_dchg_stpt = 720; // Initialize near where discharge FET turns on
@@ -144,21 +126,12 @@ int main(void)
   conv_init(battery3);
   conv_init(battery4);
 
-/*  HAL_GPIO_WritePin(battery3.chg_port, battery3.chg_pin, GPIO_PIN_SET); // Charging On
-  uint16_t lp = 0;
-  while(lp<=1000)
-  {
-	  pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_chg_pin, lp, sine);
-	  HAL_Delay(10);
-	  current3 = adc_read(battery3.i_adc_chan);
-	  lp+=100;
-  }*/
-  pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
-  pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_chg_pin, dc_pwm, sine); // Buck (charge)
-  pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
-  pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_chg_pin, dc_pwm, sine); // Buck (charge)
-  pwm_Set(battery3.pwm_tims.dchg_timer, battery3.dchg_pin, 755);
-  pwm_Set(battery4.pwm_tims.dchg_timer, battery4.dchg_pin, 755);
+  //pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
+  //pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_chg_pin, dc_pwm, sine); // Buck (charge)
+  //pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
+  //pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_chg_pin, dc_pwm, sine); // Buck (charge)
+  //pwm_Set(battery3.pwm_tims.dchg_timer, battery3.dchg_pin, 755);
+  //pwm_Set(battery4.pwm_tims.dchg_timer, battery4.dchg_pin, 755);
   //pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_chg_pin, dc_pwm, sine); // Buck (charge)
   //HAL_GPIO_WritePin(battery3.chg_port, battery3.chg_pin, GPIO_PIN_SET); // Charging On
   //HAL_GPIO_WritePin(battery4.chg_port, battery4.chg_pin, GPIO_PIN_SET); // Charging On
@@ -261,13 +234,13 @@ int main(void)
 					  props_bat4.i_adc_val = 0;
 					  props_bat4.v_adc_val = 0;
 					  props_bat4.adc_val_old = adc_read(battery4.i_adc_chan);
-					  bat_stat4 = DISCHARGE;
+					  bat_stat4 = CC;
 				  }
 				  break;
 			  case OK:
 				  props_bat4.i_adc_val = 0; // normally reset in d/chg func, but not used so reset here
 				  props_bat4.v_adc_val = 0; // normally reset in d/chg func, but not used so reset here
-				  bat_stat4 = CC;
+				  bat_stat4 = DISCHARGE;
 				  break;
 			  case OVERCURRENT:
 				  bat_stat4 = OVERCURRENT;
@@ -289,8 +262,8 @@ int main(void)
   	  /* Over-current protection */
   	  if(current4>3950 || current4<100)
   	  {
-  		  conv_init(battery4);
-  		  bat_stat4 = OVERCURRENT;
+  		  //conv_init(battery4);
+  		  //bat_stat4 = OVERCURRENT;
   	  }
   	  i4++;
 

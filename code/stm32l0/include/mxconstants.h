@@ -34,38 +34,6 @@
 
 /* Private define ------------------------------------------------------------*/
 
-/* Pins that differ between BOARD 1 and BOARDS 2/3 */
-/* BOARD 1 used to be a Nucleo F0 with diff config. Didn't want to have to
- * re-solder all the physical pins, so putting in an #ifdef instead. */
-#define BRD1
-
-#ifdef BRD1
-#define fet_ctrl_3a_Pin GPIO_PIN_8
-#define fet_ctrl_3a_GPIO_Port GPIOA
-#define fet_ctrl_3b_Pin GPIO_PIN_9
-#define fet_ctrl_3b_GPIO_Port GPIOA
-#define fet_ctrl_4a_Pin GPIO_PIN_10
-#define fet_ctrl_4a_GPIO_Port GPIOA
-#define fet_ctrl_4b_Pin GPIO_PIN_11
-#define fet_ctrl_4b_GPIO_Port GPIOA
-#define chg_onoff_3_Pin GPIO_PIN_12
-#define chg_onoff_3_GPIO_Port GPIOC
-#define chg_onoff_4_Pin GPIO_PIN_6
-#define chg_onoff_4_GPIO_Port GPIOC
-#define dchg_ctrl_3_Pin GPIO_PIN_8
-#define dchg_ctrl_3_GPIO_Port GPIOC
-#define dchg_ctrl_4_Pin GPIO_PIN_9
-#define dchg_ctrl_4_GPIO_Port GPIOC
-#define ADC_3v_Pin GPIO_PIN_0
-#define ADC_3v_GPIO_Port GPIOA
-#define ADC_3i_Pin GPIO_PIN_1
-#define ADC_3i_GPIO_Port GPIOA
-#define ADC_4v_Pin GPIO_PIN_3
-#define ADC_4v_GPIO_Port GPIOC
-#define ADC_4i_Pin GPIO_PIN_6
-#define ADC_4i_GPIO_Port GPIOA
-
-#else
 #define fet_ctrl_3a_Pin GPIO_PIN_0
 #define fet_ctrl_3a_GPIO_Port GPIOA
 #define fet_ctrl_3b_Pin GPIO_PIN_1
@@ -90,54 +58,17 @@
 #define chg_onoff_3_GPIO_Port GPIOC
 #define chg_onoff_4_Pin GPIO_PIN_9
 #define chg_onoff_4_GPIO_Port GPIOC
-#endif
 
 #define B1_Pin GPIO_PIN_13
 #define B1_GPIO_Port GPIOC
-//#define ADC_4i_Pin GPIO_PIN_0
-//#define ADC_4i_GPIO_Port GPIOC
-//#define ADC_4v_Pin GPIO_PIN_1
-//#define ADC_4v_GPIO_Port GPIOC
-//#define fet_ctrl_3a_Pin GPIO_PIN_0 // Changed from 0
-//#define fet_ctrl_3a_GPIO_Port GPIOA
-//#define fet_ctrl_3b_Pin GPIO_PIN_1 // Changed from 1
-//#define fet_ctrl_3b_GPIO_Port GPIOA
 #define USART_TX_Pin GPIO_PIN_2
 #define USART_TX_GPIO_Port GPIOA
 #define USART_RX_Pin GPIO_PIN_3
 #define USART_RX_GPIO_Port GPIOA
-//#define ADC_3v_Pin GPIO_PIN_4
-//#define ADC_3v_GPIO_Port GPIOA
 #define LD2_Pin GPIO_PIN_5
 #define LD2_GPIO_Port GPIOA
-//#define ADC_3i_Pin GPIO_PIN_0
-//#define ADC_3i_GPIO_Port GPIOB
-//#define fet_ctrl_4a_Pin GPIO_PIN_10
-//#define fet_ctrl_4a_GPIO_Port GPIOB
-//#define fet_ctrl_4b_Pin GPIO_PIN_11
-//#define fet_ctrl_4b_GPIO_Port GPIOB
-//#define dchg_ctrl_3_Pin GPIO_PIN_13
-//#define dchg_ctrl_3_GPIO_Port GPIOB
-//#define dchg_ctrl_4_Pin GPIO_PIN_14
-//#define dchg_ctrl_4_GPIO_Port GPIOB
-//#define chg_onoff_3_Pin GPIO_PIN_8
-//#define chg_onoff_3_GPIO_Port GPIOC
-//#define chg_onoff_4_Pin GPIO_PIN_9
-//#define chg_onoff_4_GPIO_Port GPIOC
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
-/* USER CODE BEGIN Private defines */
 
-/* USER CODE END Private defines */
-
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-*/ 
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
