@@ -71,7 +71,7 @@ int main(void)
   props_bat3.v_adc_val = 0;
   props_bat3.adc_val_old = adc_read(battery3.i_adc_chan);
   props_bat3.id_adc_stpt = 300 + props_bat3.adc_val_old;
-  props_bat3.ic_adc_stpt = props_bat3.adc_val_old - 100;
+  props_bat3.ic_adc_stpt = props_bat3.adc_val_old - 400;
   props_bat3.conv_bst_stpt = 200; // Need to calibrate this to boost to desired voltage
   props_bat3.pwm_chg_stpt = 0; 	  // Initialized to 0. Program will change as needed.
   props_bat3.pwm_dchg_stpt = 720; // Initialize near where discharge FET turns on
@@ -93,7 +93,7 @@ int main(void)
   props_bat4.i_adc_val = 0;
   props_bat4.v_adc_val = 0;
   props_bat4.adc_val_old = adc_read(battery4.i_adc_chan);
-  props_bat4.id_adc_stpt = 250 + props_bat4.adc_val_old;
+  props_bat4.id_adc_stpt = 300 + props_bat4.adc_val_old;
   props_bat4.ic_adc_stpt = props_bat4.adc_val_old - 400;
   props_bat4.conv_bst_stpt = 200; // Need to calibrate this to boost to desired voltage
   props_bat4.pwm_chg_stpt = 0; 	  // Initialized to 0. Program will change as needed.
@@ -119,8 +119,8 @@ int main(void)
   status bat_stat4 = OK;
 #endif
 
-  uint32_t dc_pwm = 500;
-  uint32_t sine = 0;
+  //uint32_t dc_pwm = 500;
+  //uint32_t sine = 0;
 
   /* Initialize converter and charge / discharge pins   */
   conv_init(battery3);
@@ -130,14 +130,17 @@ int main(void)
   //pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_chg_pin, dc_pwm, sine); // Buck (charge)
   //pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
   //pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_chg_pin, dc_pwm, sine); // Buck (charge)
-  //pwm_Set(battery3.pwm_tims.dchg_timer, battery3.dchg_pin, 755);
-  //pwm_Set(battery4.pwm_tims.dchg_timer, battery4.dchg_pin, 755);
+  //pwm_Set(battery3.pwm_tims.dchg_timer, battery3.dchg_pin, 740);
+  //pwm_Set(battery4.pwm_tims.dchg_timer, battery4.dchg_pin, 740);
   //pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_chg_pin, dc_pwm, sine); // Buck (charge)
   //HAL_GPIO_WritePin(battery3.chg_port, battery3.chg_pin, GPIO_PIN_SET); // Charging On
   //HAL_GPIO_WritePin(battery4.chg_port, battery4.chg_pin, GPIO_PIN_SET); // Charging On
   //pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_chg_pin, dc_pwm, sine); // Buck (charge)
   //HAL_TIM_PWM_Start(battery3.pwm_tims.conv_timer, battery3.conv_dchg_pin);
   //HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+
+  uint8_t u8_oc3 = 0;
+  uint8_t u8_oc4 = 0;
 
   /* Infinite loop */
   while (1)
@@ -152,6 +155,7 @@ int main(void)
 	  			  break;
 	  		  case CC:
 	  			  bat_stat3 = chg_ctrl(battery3, &props_bat3, i3);
+	  			  //HAL_Delay(1);
 	  			  break;
 	  		  case CV:
 	  			  bat_stat3 = cv_main(battery3, &props_bat3, &restStartms3, i3, bat_stat3);
@@ -171,13 +175,13 @@ int main(void)
 					  props_bat3.i_adc_val = 0;
 					  props_bat3.v_adc_val = 0;
 					  props_bat3.adc_val_old = adc_read(battery3.i_adc_chan);
-					  bat_stat3 = DISCHARGE;
+					  bat_stat3 = CC;
 	  			  }
 	  			  break;
 	  		  case OK:
 	  			  props_bat3.i_adc_val = 0; // normally reset in d/chg func, but not used so reset here
 	  			  props_bat3.v_adc_val = 0; // normally reset in d/chg func, but not used so reset here
-	  			  bat_stat3 = DISCHARGE;
+	  			  bat_stat3 = CC;
 	  			  break;
 	  		  case OVERCURRENT:
 	  			  bat_stat3 = OVERCURRENT;
@@ -199,8 +203,16 @@ int main(void)
   	  /* Over-current protection */
   	  if(current3>3950 || current3<100)
   	  {
-  		  conv_init(battery3);
-  		  bat_stat3 = OVERCURRENT;
+  		  u8_oc3++;
+  		  if(u8_oc3 > 15)
+  		  {
+  			conv_init(battery3);
+  			bat_stat3 = OVERCURRENT;
+  		  }
+  	  }
+  	  else
+  	  {
+  		  u8_oc3 = 0;
   	  }
   	  i3++;
 #endif
@@ -240,7 +252,7 @@ int main(void)
 			  case OK:
 				  props_bat4.i_adc_val = 0; // normally reset in d/chg func, but not used so reset here
 				  props_bat4.v_adc_val = 0; // normally reset in d/chg func, but not used so reset here
-				  bat_stat4 = DISCHARGE;
+				  bat_stat4 = CC;
 				  break;
 			  case OVERCURRENT:
 				  bat_stat4 = OVERCURRENT;
@@ -262,8 +274,16 @@ int main(void)
   	  /* Over-current protection */
   	  if(current4>3950 || current4<100)
   	  {
-  		  //conv_init(battery4);
-  		  //bat_stat4 = OVERCURRENT;
+  		  u8_oc4++;
+  		  if(u8_oc4 > 15)
+  		  {
+  			conv_init(battery4);
+  			bat_stat4 = OVERCURRENT;
+  		  }
+  	  }
+  	  else
+  	  {
+  		  u8_oc4 = 0;
   	  }
   	  i4++;
 

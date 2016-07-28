@@ -31,14 +31,14 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim21;
 
 /* Defines */
-//#define BAT1
-#define BAT2
+#define BAT1
+//#define BAT2
 #define SINE_RES_1KHZ  32
 #define SINE_RES_500HZ 64
 #define LVDC_ADC_VAL 2885 // ADC reading below which disconnect load from battery. Rt=4.7k, Rb=1.2k11.4v
 #define CV_ADC_VAL 3028 // THIS IS A GUESS!!! Switch to CV charging when voltage is >= to this.12v
 #define FULL_ADC_DIFF 30 // Below this current ADC value, battery is fully charged.
-#define I_ADC_MIDPOINT 1953// ADC reading at which current = 0A. 2035 Rig1 (conv2 / sensor3)
+#define I_ADC_MIDPOINT 2005// ADC reading at which current = 0A. 2035 Rig1 (conv2 / sensor3)
 #define FULL_ADC_VAL (I_ADC_MIDPOINT - FULL_ADC_DIFF)
 #define SINE 6 // % Amplitude of sine wave, scale of [0 - 1000]
 #define REST (uint32_t)10*1*1000 // 30 minutes rest between charge/discharge cycles
