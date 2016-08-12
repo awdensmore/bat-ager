@@ -70,8 +70,8 @@ int main(void)
   props_bat3.i_adc_val = 0;
   props_bat3.v_adc_val = 0;
   props_bat3.adc_val_old = adc_read(battery3.i_adc_chan);
-  props_bat3.id_adc_stpt = 300 + props_bat3.adc_val_old;
-  props_bat3.ic_adc_stpt = props_bat3.adc_val_old - 400;
+  props_bat3.id_adc_stpt = 400 + props_bat3.adc_val_old;
+  props_bat3.ic_adc_stpt = props_bat3.adc_val_old - 200;
   props_bat3.conv_bst_stpt = 200; // Need to calibrate this to boost to desired voltage
   props_bat3.pwm_chg_stpt = 0; 	  // Initialized to 0. Program will change as needed.
   props_bat3.pwm_dchg_stpt = 720; // Initialize near where discharge FET turns on
@@ -86,15 +86,15 @@ int main(void)
   battery4.chg_port = chg_onoff_4_GPIO_Port;
   battery4.chg_pin = chg_onoff_4_Pin;
   battery4.dchg_pin = TIM_CHANNEL_2;
-  battery4.conv_chg_pin = TIM_CHANNEL_3;
+  battery4.conv_chg_pin = B4_CHG_CHAN; // Change in h file (used in multiple locations, dma_offset func)
   battery4.conv_dchg_pin = TIM_CHANNEL_4;
   battery4.pwm_tims = b4_tims;
 
   props_bat4.i_adc_val = 0;
   props_bat4.v_adc_val = 0;
   props_bat4.adc_val_old = adc_read(battery4.i_adc_chan);
-  props_bat4.id_adc_stpt = 300 + props_bat4.adc_val_old;
-  props_bat4.ic_adc_stpt = props_bat4.adc_val_old - 400;
+  props_bat4.id_adc_stpt = 500 + props_bat4.adc_val_old;
+  props_bat4.ic_adc_stpt = props_bat4.adc_val_old - 200;
   props_bat4.conv_bst_stpt = 200; // Need to calibrate this to boost to desired voltage
   props_bat4.pwm_chg_stpt = 0; 	  // Initialized to 0. Program will change as needed.
   props_bat4.pwm_dchg_stpt = 720; // Initialize near where discharge FET turns on
@@ -119,19 +119,25 @@ int main(void)
   status bat_stat4 = OK;
 #endif
 
-  //uint32_t dc_pwm = 500;
+  //uint32_t dc_pwm[10] = {100, 500, 200, 300, 400, 500, 600, 700, 250, 750};
+  //uint32_t test2[2] = {100, 900};
   //uint32_t sine = 0;
 
   /* Initialize converter and charge / discharge pins   */
   conv_init(battery3);
   conv_init(battery4);
 
+  //HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, &dc_pwm, (uint16_t)2);
+  //HAL_Delay(10);
+  //HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_4, &dc_pwm[8], (uint16_t)2);
+  //HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, 200, (uint16_t)SINE_RES_500HZ);
+  //HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_4, 800, (uint16_t)SINE_RES_500HZ);
   //pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
-  //pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_chg_pin, dc_pwm, sine); // Buck (charge)
-  //pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_dchg_pin, dc_pwm, sine); // Boost (discharge)
-  //pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_chg_pin, dc_pwm, sine); // Buck (charge)
-  //pwm_Set(battery3.pwm_tims.dchg_timer, battery3.dchg_pin, 740);
-  //pwm_Set(battery4.pwm_tims.dchg_timer, battery4.dchg_pin, 740);
+  //pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_chg_pin,  dc_pwm, sine); // Buck (charge)
+  //pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_dchg_pin, test2, sine); // Boost (discharge)
+  //pwm_sine_Start(battery4.pwm_tims.conv_timer, battery4.conv_chg_pin, 400, sine); // Buck (charge)
+  //pwm_Set(battery3.pwm_tims.dchg_timer, battery3.dchg_pin, 750);
+  //pwm_Set(battery4.pwm_tims.dchg_timer, battery4.dchg_pin, 760);
   //pwm_sine_Start(battery3.pwm_tims.conv_timer, battery3.conv_chg_pin, dc_pwm, sine); // Buck (charge)
   //HAL_GPIO_WritePin(battery3.chg_port, battery3.chg_pin, GPIO_PIN_SET); // Charging On
   //HAL_GPIO_WritePin(battery4.chg_port, battery4.chg_pin, GPIO_PIN_SET); // Charging On
@@ -142,9 +148,13 @@ int main(void)
   uint8_t u8_oc3 = 0;
   uint8_t u8_oc4 = 0;
 
+  // Wait for batteries to be connected
+  while(adc_read(battery3.v_adc_chan) < 500 || adc_read(battery4.v_adc_chan) < 500) {}
+
   /* Infinite loop */
   while (1)
   {
+
 #ifdef BAT1
 	  /* First battery */
 	  if(TimeCounter3>=5) // 4ms, ie 2 periods of 500Hz sine wave
@@ -181,7 +191,7 @@ int main(void)
 	  		  case OK:
 	  			  props_bat3.i_adc_val = 0; // normally reset in d/chg func, but not used so reset here
 	  			  props_bat3.v_adc_val = 0; // normally reset in d/chg func, but not used so reset here
-	  			  bat_stat3 = CC;
+	  			  bat_stat3 = DISCHARGE;
 	  			  break;
 	  		  case OVERCURRENT:
 	  			  bat_stat3 = OVERCURRENT;

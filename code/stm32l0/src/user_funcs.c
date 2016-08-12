@@ -63,23 +63,25 @@ void pwm_Set(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_duty_cy
  * 		   tim_channel - channel of PWM pin (TIM_CHANNEL_1, etc.)
  * 		   u32_duty_cycle - the DC duty cycle on which the sine wave will be added. [0 - htimx.Init.Period]
  * 		   NOTE: the duty cycle scale for this function is different from pwm_Start.
+ * 		   u16_ampl - the amplitude of the sine wave [0 - htimx.Init.Period]
+ * 		   u8_conv_id - offset for the DMA memory for sine wave
  */
-void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_dc_duty_cycle, uint16_t u16_ampl)
+void pwm_sine_Start(TIM_HandleTypeDef htimx, uint32_t tim_channel, uint32_t u32_dc_duty_cycle, uint16_t u16_ampl, uint8_t u8_conv_id)
 {
-	//u32_sine_duty_cycle = {0};
 	int32_t i32_pwm_ampl[SINE_RES_500HZ] = {0}; // amplitude of the sine wave expressed as a % of the pwm period
-	//uint32_t u32_pwm_duty_cycle[SINE_RESOLUTION] = {0}; // duty cycle expressed as [0 - htimx.Init.Period]
 	int32_t dc_check[SINE_RES_500HZ] = {0};
 	int32_t i32_max_period = (int32_t)htimx.Init.Period;
+	uint32_t *p_dma; // pointer to the location of DMA memory
 
 	for(uint8_t i=0; i<(uint8_t)SINE_RES_500HZ; i++)
 	{
 		i32_pwm_ampl[i] = ((int32_t)i16_sine500hz_lookup[i] * (int32_t)u16_ampl * i32_max_period) / (1000 * 1000);
 		dc_check[i] = (int32_t)u32_dc_duty_cycle + i32_pwm_ampl[i];
-		u32_sine_duty_cycle[i] = (uint32_t)max(min(i32_max_period, dc_check[i]), 0);
+		u32_sine_duty_cycle[i+u8_conv_id*SINE_RES_500HZ] = (uint32_t)max(min(i32_max_period, dc_check[i]), 0);
 	}
+	p_dma = &u32_sine_duty_cycle[u8_conv_id*SINE_RES_500HZ];
 
-	HAL_TIM_PWM_Start_DMA(&htimx, tim_channel, u32_sine_duty_cycle, (uint16_t)SINE_RES_500HZ);
+	HAL_TIM_PWM_Start_DMA(&htimx, tim_channel, p_dma, (uint16_t)SINE_RES_500HZ);
 	HAL_Delay(10);
 
 }
@@ -186,7 +188,7 @@ status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	batpropsx->v_adc_val = batpropsx->v_adc_val / counter; // Average voltage reading
 
 	/* Determine appropriate pwm value for the discharge FET */
-	batpropsx->pwm_dchg_stpt = max(500,pi_ctrl(batpropsx->id_adc_stpt, batpropsx->pwm_dchg_stpt,\
+	batpropsx->pwm_dchg_stpt = max(100,pi_ctrl(batpropsx->id_adc_stpt, batpropsx->pwm_dchg_stpt,\
 			batpropsx->i_adc_val, &pij, batpropsx->adc_val_old, bat_stat));
 
 	/* Check for low voltage disconnect */
@@ -264,7 +266,7 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	else
 	{
 		pwm_sine_Start(batteryx.pwm_tims.conv_timer, batteryx.conv_chg_pin, \
-				batpropsx->pwm_chg_stpt, (uint16_t)SINE);
+				batpropsx->pwm_chg_stpt, (uint16_t)SINE, dma_offset(batteryx));
 		HAL_GPIO_WritePin(batteryx.chg_port, batteryx.chg_pin, GPIO_PIN_SET); // Charging on
 	}
 
@@ -293,7 +295,7 @@ status discharge_main(batpins pinsx, batprops *batx, uint32_t* restStartms, \
 		uint32_t loops, status bat_stat)
 {
 	pwm_sine_Start(pinsx.pwm_tims.conv_timer, pinsx.conv_dchg_pin, \
-			batx->conv_bst_stpt, SINE);
+			batx->conv_bst_stpt, SINE, dma_offset(pinsx)+1);
 	bat_stat = dchg_ctrl(pinsx, batx, loops);
 	if(bat_stat == LVDC)
 	{
@@ -320,4 +322,19 @@ status cv_main(batpins pinsx, batprops *batx, uint32_t* restStartms, \
 	}
 
 	return bat_stat;
+}
+
+/* dma_offset
+ * Description: To avoid overwriting the same DMA location for the sine wave functions, there is one DMA location that is long
+ * 				enough to hold the sine waves for all 4 converters. Therefore when writing a new wave for one converter, an
+ * 				offset is required to only change the memory for one converter.
+ */
+uint8_t dma_offset(batpins pinsx)
+{
+	uint8_t offset = 0;
+	if (pinsx.conv_chg_pin == B4_CHG_CHAN)
+	{
+		offset = 2; // 0 = B3_CHG_CHAN
+	}
+	return offset;
 }
