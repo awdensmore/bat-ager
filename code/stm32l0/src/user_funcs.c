@@ -219,7 +219,7 @@ status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
  * Returns:
  * 		Battery status
  */
-status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
+status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter, uint32_t i_adc_mdpt)
 {
 	uint32_t u32_adc_val = 0; // this will be set to i or v depending on mode (CC/CV)
 	uint32_t u32_adc_stpt = 0; // this will be set to i or v depending on mode (CC/CV)
@@ -245,8 +245,8 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 		 * debug), transform adc val and setpoint to have same sign and direction as in discharge mode.
 		 * Therefore no changes are needed in pi_ctrl()
 		 */
-		u32_adc_val = I_ADC_MIDPOINT + (I_ADC_MIDPOINT - batpropsx->i_adc_val);
-		u32_adc_stpt = I_ADC_MIDPOINT + (I_ADC_MIDPOINT - batpropsx->ic_adc_stpt);
+		u32_adc_val = i_adc_mdpt + (i_adc_mdpt - batpropsx->i_adc_val);
+		u32_adc_stpt = i_adc_mdpt + (i_adc_mdpt - batpropsx->ic_adc_stpt);
 	}
 
 	/* Determine appropriate pwm value for the charge FET on DC-DC converter */
@@ -313,9 +313,9 @@ status discharge_main(batpins pinsx, batprops *batx, uint32_t* restStartms, \
  * Outputs: bat_stat
  */
 status cv_main(batpins pinsx, batprops *batx, uint32_t* restStartms, \
-		uint32_t loops, status bat_stat)
+		uint32_t loops, uint32_t i_adc_mdpt, status bat_stat)
 {
-	bat_stat = chg_ctrl(pinsx, batx, loops);
+	bat_stat = chg_ctrl(pinsx, batx, loops, i_adc_mdpt);
 	if(bat_stat == FULL)
 	{
 		*restStartms = HAL_GetTick();

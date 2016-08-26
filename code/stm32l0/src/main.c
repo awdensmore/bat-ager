@@ -109,6 +109,7 @@ int main(void)
   uint32_t voltage3 = 0;
   uint32_t current3 = 720;
   status bat_stat3 = OK;
+  i3_origin = props_bat3.adc_val_old;
 #endif
 
 #ifdef BAT2
@@ -117,6 +118,7 @@ int main(void)
   uint32_t voltage4 = 0;
   uint32_t current4 = 720;
   status bat_stat4 = OK;
+  i4_origin = props_bat4.adc_val_old;
 #endif
 
   //uint32_t dc_pwm[10] = {100, 500, 200, 300, 400, 500, 600, 700, 250, 750};
@@ -164,11 +166,11 @@ int main(void)
 	  			  bat_stat3 = discharge_main(battery3, &props_bat3, &restStartms3, i3, bat_stat3);
 	  			  break;
 	  		  case CC:
-	  			  bat_stat3 = chg_ctrl(battery3, &props_bat3, i3);
+	  			  bat_stat3 = chg_ctrl(battery3, &props_bat3, i3, i3_origin);
 	  			  //HAL_Delay(1);
 	  			  break;
 	  		  case CV:
-	  			  bat_stat3 = cv_main(battery3, &props_bat3, &restStartms3, i3, bat_stat3);
+	  			  bat_stat3 = cv_main(battery3, &props_bat3, &restStartms3, i3, i3_origin, bat_stat3);
 	  			  break;
 	  		  case FULL:
 	  			  if(HAL_GetTick() - restStartms3 >= REST)
@@ -236,10 +238,10 @@ int main(void)
 				  bat_stat4 = discharge_main(battery4, &props_bat4, &restStartms4, i4, bat_stat4);
 				  break;
 			  case CC:
-				  bat_stat4 = chg_ctrl(battery4, &props_bat4, i4);
+				  bat_stat4 = chg_ctrl(battery4, &props_bat4, i4, i4_origin);
 				  break;
 			  case CV:
-				  bat_stat4 = cv_main(battery4, &props_bat4, &restStartms4, i4, bat_stat4);
+				  bat_stat4 = cv_main(battery4, &props_bat4, &restStartms4, i4, i4_origin, bat_stat4);
 				  break;
 			  case FULL:
 				  if(HAL_GetTick() - restStartms4 >= REST)

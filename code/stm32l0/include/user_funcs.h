@@ -36,11 +36,11 @@ TIM_HandleTypeDef htim21;
 #define SINE_RES_1KHZ  32
 #define SINE_RES_500HZ 64
 #define LVDC_ADC_VAL 2785 // ADC reading below which disconnect load from battery. Rt=4.7k, Rb=1.2k11.4v
-#define CV_ADC_VAL 3536 // THIS IS A GUESS!!! Switch to CV charging when voltage is >= to this.14v=3536. 12v=3028.
+#define CV_ADC_VAL 3536 // THIS IS A GUESS!!! Switch to CV charging when voltage is >= to this.14v
 #define FULL_ADC_DIFF 30 // Below this current ADC value, battery is fully charged.
 #define I_ADC_MIDPOINT 1907// ADC reading at which current = 0A. 2035 Rig1 (conv2 / sensor3)
 #define FULL_ADC_VAL (I_ADC_MIDPOINT - FULL_ADC_DIFF)
-#define SINE 6 // % Amplitude of sine wave, scale of [0 - 1000]
+#define SINE 3 // % Amplitude of sine wave, scale of [0 - 1000]
 #define REST (uint32_t)10*1*1000 // 30 minutes rest between charge/discharge cycles
 #define NUM_CONV 4 // Number of converters. Used to set DMA memory
 #define B3_CHG (uint8_t)0 // ID for DMA location of sine wave for B3 charge converter (buck)
@@ -52,6 +52,12 @@ TIM_HandleTypeDef htim21;
 /* Global variables */
 //volatile int32_t pi_j3, pi_j4; // integral timer value for PI control loop
 volatile uint32_t u32_sine_duty_cycle[SINE_RES_500HZ*NUM_CONV];
+#ifdef BAT1
+uint32_t i3_origin;
+#endif
+#ifdef BAT2
+uint32_t i4_origin;
+#endif
 
 uint32_t TimeCounter3, TimeCounter4;
 
@@ -130,9 +136,9 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, \
 int32_t *pij, uint32_t u32_adc_val_old, status mode);
 uint8_t oc_check(int32_t i32_pwm_val, uint8_t u8_oc_trip);
 status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter);
-status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter);
+status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter, uint32_t i_adc_mdpt);
 status discharge_main(batpins pinsx, batprops *batx, uint32_t* restStartms, \
 		uint32_t loops, status bat_stat);
 status cv_main(batpins pinsx, batprops *batx, uint32_t* restStartms, \
-uint32_t loops, status bat_stat);
+uint32_t loops, uint32_t i_adc_mdpt, status bat_stat);
 uint8_t dma_offset(batpins pinsx);
