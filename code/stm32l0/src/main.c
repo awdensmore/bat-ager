@@ -191,7 +191,7 @@ int main(void)
 	  		  case OK:
 	  			  props_bat3.i_adc_val = 0; // normally reset in d/chg func, but not used so reset here
 	  			  props_bat3.v_adc_val = 0; // normally reset in d/chg func, but not used so reset here
-	  			  bat_stat3 = DISCHARGE;
+	  			  bat_stat3 = CC;
 	  			  break;
 	  		  case OVERCURRENT:
 	  			  bat_stat3 = OVERCURRENT;
@@ -262,7 +262,7 @@ int main(void)
 			  case OK:
 				  props_bat4.i_adc_val = 0; // normally reset in d/chg func, but not used so reset here
 				  props_bat4.v_adc_val = 0; // normally reset in d/chg func, but not used so reset here
-				  bat_stat4 = CC;
+				  bat_stat4 = DISCHARGE;
 				  break;
 			  case OVERCURRENT:
 				  bat_stat4 = OVERCURRENT;
