@@ -40,7 +40,7 @@ TIM_HandleTypeDef htim21;
 #define FULL_ADC_DIFF 30 // Below this current ADC value, battery is fully charged.
 #define I_ADC_MIDPOINT 1907// ADC reading at which current = 0A. 2035 Rig1 (conv2 / sensor3)
 #define FULL_ADC_VAL (I_ADC_MIDPOINT - FULL_ADC_DIFF)
-#define SINE 3 // % Amplitude of sine wave, scale of [0 - 1000]
+#define SINE 8 // % Amplitude of sine wave, scale of [0 - 1000]
 #define REST (uint32_t)10*1*1000 // 30 minutes rest between charge/discharge cycles
 #define NUM_CONV 4 // Number of converters. Used to set DMA memory
 #define B3_CHG (uint8_t)0 // ID for DMA location of sine wave for B3 charge converter (buck)
