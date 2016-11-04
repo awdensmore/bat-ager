@@ -188,15 +188,35 @@ status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	batpropsx->v_adc_val = batpropsx->v_adc_val / counter; // Average voltage reading
 
 	/* Determine appropriate pwm value for the discharge FET */
-	batpropsx->pwm_dchg_stpt = max(100,pi_ctrl(batpropsx->id_adc_stpt, batpropsx->pwm_dchg_stpt,\
+	/* 1Nov2016 - changed max 100->0. LPF on dchg fet is very slow acting. 100 may be too high. */
+	batpropsx->pwm_dchg_stpt = max(0,pi_ctrl(batpropsx->id_adc_stpt, batpropsx->pwm_dchg_stpt,\
 			batpropsx->i_adc_val, &pij, batpropsx->adc_val_old, bat_stat));
 
 	/* Check for low voltage disconnect */
-	if(batpropsx->v_adc_val < (uint32_t)LVDC_ADC_VAL)
+	if(batpropsx->v_adc_val < (uint32_t)LVDC_ADC_VAL || batpropsx->sw_ctr)
 	{
-		batpropsx->pwm_dchg_stpt = 0;
-		HAL_TIM_PWM_Stop_DMA(&batteryx.pwm_tims.conv_timer, batteryx.conv_dchg_pin); // once DMA is used, only DMA can be used (at least this is all that works)
-		bat_stat = LVDC;
+		batpropsx->sw_ctr = 1;
+		/* Implement a slow disconnect */
+		if(batpropsx->pwm_dchg_stpt > 3)
+		{
+			batpropsx->pwm_dchg_stpt -= 3;
+		}
+		else
+		{
+			batpropsx->sw_ctr = 0;
+			batpropsx->pwm_dchg_stpt = 0;
+			HAL_TIM_PWM_Stop_DMA(&batteryx.pwm_tims.conv_timer, batteryx.conv_dchg_pin); // once DMA is used, only DMA can be used (at least this is all that works)
+			bat_stat = LVDC;
+		}
+//		batpropsx->sw_ctr++;
+//		if(batpropsx->sw_ctr >= SWTHR) { // Only declare LVDC if condition has been met SWTHR times
+//			batpropsx->sw_ctr = 0;
+//			batpropsx->pwm_dchg_stpt = 0;
+//			HAL_TIM_PWM_Stop_DMA(&batteryx.pwm_tims.conv_timer, batteryx.conv_dchg_pin); // once DMA is used, only DMA can be used (at least this is all that works)
+//			//pwm_Set(batteryx.pwm_tims.dchg_timer, batteryx.dchg_pin, batpropsx->pwm_dchg_stpt);
+//			bat_stat = LVDC;
+//		}
+
 	}
 
 	/* Set the discharge FET */
@@ -232,9 +252,14 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter, uint32_
 	/* Determine charging mode */
 	if(batpropsx->v_adc_val >= (uint32_t)CV_ADC_VAL)
 	{
-		bat_stat = CV;
-		u32_adc_val = batpropsx->v_adc_val;
-		u32_adc_stpt = (uint32_t)CV_ADC_VAL+10; // added buffer to prevent bouncing b/w CC & CV
+		batpropsx->sw_ctr++;
+		if(batpropsx->sw_ctr > 10)
+		{
+			batpropsx->sw_ctr = 0;
+			bat_stat = CV;
+			u32_adc_val = batpropsx->v_adc_val;
+			u32_adc_stpt = (uint32_t)CV_ADC_VAL+10; // added buffer to prevent bouncing b/w CC & CV
+		}
 	}
 	else
 	{
@@ -258,10 +283,16 @@ status chg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter, uint32_
 	/* Check for full battery, else set converter PWM */
 	if(bat_stat == CV && batpropsx->i_adc_val >= (uint32_t)FULL_ADC_VAL)
 	{
-		batpropsx->pwm_chg_stpt = 0;
-		HAL_GPIO_WritePin(batteryx.chg_port, batteryx.chg_pin, GPIO_PIN_RESET); // Charging off
-		HAL_TIM_PWM_Stop_DMA(&batteryx.pwm_tims.conv_timer, batteryx.conv_chg_pin); // Turn off converter
-		bat_stat = FULL;
+		// If slow stop to be implemented, need to use PWM on charging pin (rather than GPIO).
+		batpropsx->sw_ctr++;
+		if(batpropsx->sw_ctr >= SWTHR) { // Only declare bat full if condition has been met SWTHR times
+			batpropsx->sw_ctr = 0;
+			batpropsx->pwm_chg_stpt = 0;
+			HAL_GPIO_WritePin(batteryx.chg_port, batteryx.chg_pin, GPIO_PIN_RESET); // Charging off
+			HAL_TIM_PWM_Stop_DMA(&batteryx.pwm_tims.conv_timer, batteryx.conv_chg_pin); // Turn off converter
+			bat_stat = FULL;
+		}
+
 	}
 	else
 	{
@@ -338,3 +369,12 @@ uint8_t dma_offset(batpins pinsx)
 	}
 	return offset;
 }
+
+/* slow_trans
+ * Description: Switching charging/discharging on/off on one battery can interfere with others. This
+ * 				function slows the transition down to prevent interference.
+ */
+//void slow_trans()
+//{
+//
+//}

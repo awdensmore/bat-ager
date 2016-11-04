@@ -41,13 +41,14 @@ TIM_HandleTypeDef htim21;
 #define I_ADC_MIDPOINT 1907// ADC reading at which current = 0A. 2035 Rig1 (conv2 / sensor3)
 #define FULL_ADC_VAL (I_ADC_MIDPOINT - FULL_ADC_DIFF)
 #define SINE 8 // % Amplitude of sine wave, scale of [0 - 1000]
-#define REST (uint32_t)10*1*1000 // 30 minutes rest between charge/discharge cycles
+#define REST (uint32_t)1*60*1000 // 30 minutes rest between charge/discharge cycles
 #define NUM_CONV 4 // Number of converters. Used to set DMA memory
 #define B3_CHG (uint8_t)0 // ID for DMA location of sine wave for B3 charge converter (buck)
 #define B3_DCHG (uint8_t)1 // ID for DMA location of sine wave for B3 discharge converter (boost)
 #define B4_CHG (uint8_t)2 // ID for DMA location of sine wave for B4 charge converter (buck)
 #define B4_DCHG (uint8_t)3 // ID for DMA location of sine wave for B4 discharge converter (boost)
 #define B4_CHG_CHAN TIM_CHANNEL_3
+#define SWTHR 4 // threshold for switching modes (dchg->LVDC or CV->FULL)
 
 /* Global variables */
 //volatile int32_t pi_j3, pi_j4; // integral timer value for PI control loop
@@ -104,6 +105,7 @@ typedef struct batprops {
 	uint32_t adc_val_old;
 	uint32_t v_adc_val;
 	int32_t pi; // counter for the integral gain in PI loop
+	uint32_t sw_ctr; // counter so that mode switching (ie dchg->LVDC) takes a few cycles
 }batprops;
 
 

@@ -70,12 +70,13 @@ int main(void)
   props_bat3.i_adc_val = 0;
   props_bat3.v_adc_val = 0;
   props_bat3.adc_val_old = adc_read(battery3.i_adc_chan);
-  props_bat3.id_adc_stpt = 400 + props_bat3.adc_val_old;
+  props_bat3.id_adc_stpt = 800 + props_bat3.adc_val_old;
   props_bat3.ic_adc_stpt = props_bat3.adc_val_old - 600;
-  props_bat3.conv_bst_stpt = 200; // Need to calibrate this to boost to desired voltage
+  props_bat3.conv_bst_stpt = 130; // Need to calibrate this to boost to desired voltage
   props_bat3.pwm_chg_stpt = 0; 	  // Initialized to 0. Program will change as needed.
   props_bat3.pwm_dchg_stpt = 720; // Initialize near where discharge FET turns on
   props_bat3.pi = 0;
+  props_bat3.sw_ctr = 0;
 
   /* Battery 4 */
   b4_tims.conv_timer = htim2;
@@ -94,11 +95,12 @@ int main(void)
   props_bat4.v_adc_val = 0;
   props_bat4.adc_val_old = adc_read(battery4.i_adc_chan);
   props_bat4.id_adc_stpt = 500 + props_bat4.adc_val_old;
-  props_bat4.ic_adc_stpt = props_bat4.adc_val_old - 200;
-  props_bat4.conv_bst_stpt = 200; // Need to calibrate this to boost to desired voltage
+  props_bat4.ic_adc_stpt = props_bat4.adc_val_old - 400;
+  props_bat4.conv_bst_stpt = 130; // Calibrated 1Nov2016. See lab notes of same date.
   props_bat4.pwm_chg_stpt = 0; 	  // Initialized to 0. Program will change as needed.
   props_bat4.pwm_dchg_stpt = 720; // Initialize near where discharge FET turns on
   props_bat4.pi = 0;
+  props_bat4.sw_ctr = 0;
 
   /* Initialize global variables */
 #ifdef BAT1
@@ -193,7 +195,7 @@ int main(void)
 	  		  case OK:
 	  			  props_bat3.i_adc_val = 0; // normally reset in d/chg func, but not used so reset here
 	  			  props_bat3.v_adc_val = 0; // normally reset in d/chg func, but not used so reset here
-	  			  bat_stat3 = CC;
+	  			  bat_stat3 = DISCHARGE;
 	  			  break;
 	  		  case OVERCURRENT:
 	  			  bat_stat3 = OVERCURRENT;
