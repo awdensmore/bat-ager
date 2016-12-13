@@ -31,24 +31,33 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim21;
 
 /* Defines */
+//#define DBG
+
+#ifndef DBG
 #define BAT1
 #define BAT2
+#endif
+
 #define SINE_RES_1KHZ  32
 #define SINE_RES_500HZ 64
-#define LVDC_ADC_VAL 2785 // ADC reading below which disconnect load from battery. Rt=4.7k, Rb=1.2k11.4v
-#define CV_ADC_VAL 3536 // THIS IS A GUESS!!! Switch to CV charging when voltage is >= to this.14v
+#define LVDC_ADC_VAL 2776 // ADC reading below which disconnect load from battery. Rt=4.7k, Rb=1.2k11.4v
+// LVDC = 2662 for B1/B2
+#define CV_ADC_VAL 3533 // Switch to CV charging when voltage is >= to this.14v
+// CV = 3533 for B1/B2
 #define FULL_ADC_DIFF 30 // Below this current ADC value, battery is fully charged.
 #define I_ADC_MIDPOINT 1907// ADC reading at which current = 0A. 2035 Rig1 (conv2 / sensor3)
 #define FULL_ADC_VAL (I_ADC_MIDPOINT - FULL_ADC_DIFF)
 #define SINE 8 // % Amplitude of sine wave, scale of [0 - 1000]
-#define REST (uint32_t)1*60*1000 // 30 minutes rest between charge/discharge cycles
+#define REST (uint32_t)1*30*1000 // 30 minutes rest between charge/discharge cycles
 #define NUM_CONV 4 // Number of converters. Used to set DMA memory
 #define B3_CHG (uint8_t)0 // ID for DMA location of sine wave for B3 charge converter (buck)
 #define B3_DCHG (uint8_t)1 // ID for DMA location of sine wave for B3 discharge converter (boost)
 #define B4_CHG (uint8_t)2 // ID for DMA location of sine wave for B4 charge converter (buck)
 #define B4_DCHG (uint8_t)3 // ID for DMA location of sine wave for B4 discharge converter (boost)
 #define B4_CHG_CHAN TIM_CHANNEL_3
-#define SWTHR 4 // threshold for switching modes (dchg->LVDC or CV->FULL)
+#define SWTHR 100 // threshold for switching modes (dchg->LVDC or CV->FULL)
+#define CBCOMP (uint32_t) 50 // Compensation for circuit breaker (220mV -> 270 ADC)
+#define DCHG_PWM_INIT (uint32_t)770
 
 /* Global variables */
 //volatile int32_t pi_j3, pi_j4; // integral timer value for PI control loop
