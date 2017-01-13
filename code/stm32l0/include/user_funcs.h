@@ -13,12 +13,12 @@
  * TIM2_CH3 -> fet_ctrl_4a_Pin -> PB10 (DMA1_Channel1)
  * TIM2_CH4 -> fet_ctrl_4b_Pin -> PB11 (DMA1_Channel4)
  *
- * TIM21_CH1 -> dchg_ctrl_3_Pin -> PB13
- * TIM21_CH2 -> dchg_ctrl_4_Pin -> PB14
+ * TIM22_CH1 -> dchg_ctrl_3_Pin -> PA6
+ * TIM22_CH2 -> dchg_ctrl_4_Pin -> PA7
  *
  * GPIO
- * GPIO_PIN_8 -> chg_onoff_3_Pin -> PC8
- * GPIO_PIN_9 -> chg_onoff_4_Pin -> PC9
+ * GPIO_PIN_8 -> chg_onoff_3_Pin -> PC5
+ * GPIO_PIN_9 -> chg_onoff_4_Pin -> PC6
  */
 
 #include "stm32l0xx_hal.h"
@@ -28,7 +28,7 @@ HAL_StatusTypeDef hstat;
 ADC_HandleTypeDef hadc;
 
 TIM_HandleTypeDef htim2;
-TIM_HandleTypeDef htim21;
+TIM_HandleTypeDef htim22;
 
 /* Defines */
 //#define DBG
@@ -56,8 +56,8 @@ TIM_HandleTypeDef htim21;
 #define B4_DCHG (uint8_t)3 // ID for DMA location of sine wave for B4 discharge converter (boost)
 #define B4_CHG_CHAN TIM_CHANNEL_3
 #define SWTHR 100 // threshold for switching modes (dchg->LVDC or CV->FULL)
-#define CBCOMP (uint32_t) 50 // Compensation for circuit breaker (220mV -> 270 ADC)
-#define DCHG_PWM_INIT (uint32_t)770
+#define CBCOMP (uint32_t) 0 // Compensation for circuit breaker (220mV -> 270 ADC)
+#define DCHG_PWM_INIT (uint32_t)740
 
 /* Global variables */
 //volatile int32_t pi_j3, pi_j4; // integral timer value for PI control loop

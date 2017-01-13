@@ -50,13 +50,13 @@
 #define fet_ctrl_4a_GPIO_Port GPIOB
 #define fet_ctrl_4b_Pin GPIO_PIN_11
 #define fet_ctrl_4b_GPIO_Port GPIOB
-#define dchg_ctrl_3_Pin GPIO_PIN_13
-#define dchg_ctrl_3_GPIO_Port GPIOB
-#define dchg_ctrl_4_Pin GPIO_PIN_14
-#define dchg_ctrl_4_GPIO_Port GPIOB
-#define chg_onoff_3_Pin GPIO_PIN_8
+#define dchg_ctrl_3_Pin GPIO_PIN_6
+#define dchg_ctrl_3_GPIO_Port GPIOA
+#define dchg_ctrl_4_Pin GPIO_PIN_7
+#define dchg_ctrl_4_GPIO_Port GPIOA
+#define chg_onoff_3_Pin GPIO_PIN_5
 #define chg_onoff_3_GPIO_Port GPIOC
-#define chg_onoff_4_Pin GPIO_PIN_9
+#define chg_onoff_4_Pin GPIO_PIN_6
 #define chg_onoff_4_GPIO_Port GPIOC
 
 #define B1_Pin GPIO_PIN_13

@@ -219,24 +219,24 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
 
   /* USER CODE END TIM2_MspInit 1 */
   }
-  else if(htim_pwm->Instance==TIM21)
+  else if(htim_pwm->Instance==TIM22)
   {
   /* USER CODE BEGIN TIM21_MspInit 0 */
 
   /* USER CODE END TIM21_MspInit 0 */
     /* Peripheral clock enable */
-    __TIM21_CLK_ENABLE();
+    __TIM22_CLK_ENABLE();
   
-    /**TIM21 GPIO Configuration    
-    PB13     ------> TIM21_CH1
-    PB14     ------> TIM21_CH2 
+    /**TIM22 GPIO Configuration
+    PA6     ------> TIM22_CH1
+    PA7     ------> TIM22_CH2
     */
     GPIO_InitStruct.Pin = dchg_ctrl_3_Pin|dchg_ctrl_4_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF6_TIM21;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    GPIO_InitStruct.Alternate = GPIO_AF5_TIM22;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /* USER CODE BEGIN TIM21_MspInit 1 */
 
@@ -275,23 +275,23 @@ void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* htim_pwm)
 
   /* USER CODE END TIM2_MspDeInit 1 */
   }
-  else if(htim_pwm->Instance==TIM21)
+  else if(htim_pwm->Instance==TIM22)
   {
-  /* USER CODE BEGIN TIM21_MspDeInit 0 */
+  /* USER CODE BEGIN TIM22_MspDeInit 0 */
 
-  /* USER CODE END TIM21_MspDeInit 0 */
+  /* USER CODE END TIM22_MspDeInit 0 */
     /* Peripheral clock disable */
-    __TIM21_CLK_DISABLE();
+    __TIM22_CLK_DISABLE();
   
     /**TIM21 GPIO Configuration    
-    PB13     ------> TIM21_CH1
-    PB14     ------> TIM21_CH2 
+    PA6     ------> TIM22_CH1
+    PA7     ------> TIM22_CH2
     */
-    HAL_GPIO_DeInit(GPIOB, dchg_ctrl_3_Pin|dchg_ctrl_4_Pin);
+    HAL_GPIO_DeInit(GPIOA, dchg_ctrl_3_Pin|dchg_ctrl_4_Pin);
 
-  /* USER CODE BEGIN TIM21_MspDeInit 1 */
+  /* USER CODE BEGIN TIM22_MspDeInit 1 */
 
-  /* USER CODE END TIM21_MspDeInit 1 */
+  /* USER CODE END TIM22_MspDeInit 1 */
   }
 
 }

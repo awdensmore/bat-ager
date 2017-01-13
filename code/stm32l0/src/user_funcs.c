@@ -137,7 +137,7 @@ uint32_t pi_ctrl(uint32_t u32_stpt, uint32_t pwm_val, uint32_t u32_adc_val, \
 		  	  g = 20;
 		  	  pi_j = 0;
 		  }
-		  else if(d_slope > 15) {
+		  else if(d_slope > 15) { /* d_slope = diff - diff_old */
 		  	  g = -1;
 		  	  pi_j = 0;
 		  }
@@ -217,6 +217,10 @@ status dchg_ctrl(batpins batteryx, batprops *batpropsx, uint32_t counter)
 	if(batpropsx->v_adc_val < (uint32_t)LVDC_ADC_VAL)
 	{
 		batpropsx->sw_ctr++;
+	}
+	else
+	{
+		batpropsx->sw_ctr = 0;
 	}
 	/* Threshold has been reached, implement slow switch */
 	if(batpropsx->sw_ctr >= SWTHR)
